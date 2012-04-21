@@ -18,7 +18,6 @@ git add .
 git status  			
 
 //commits to the local repository
-
 git commit -m 'first commit'
 
 //commits to the remote repository
