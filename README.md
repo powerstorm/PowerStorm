@@ -10,11 +10,21 @@ Git Instructions:
 git clone git@github.com:powerstorm/PowerStorm.git
 
 //HOW TO COMMIT
-git add .   			//adds everything to the repository
-git status  			//tells us what is going on (new files)
-git commit -m 'first commit'	//commits to the local repository
-git push origin master		//commits to the remote repository
-THEN TYPE IN PASSWORD: 		//Unless you are  on Mac OS X, which saves your password
+
+//adds everything to the repository
+git add . 
+
+//tells us what is going on (new files)
+git status  			
+
+//commits to the local repository
+git commit -m 'first commit'
+
+//commits to the remote repository
+git push origin master		
+
+//Unless you are  on Mac OS X, which saves your password
+THEN TYPE IN PASSWORD: 		
 
 //HOW TO PULL NEWEST CHANGES
 git pull git@github.com:powerstorm/PowerStorm.git master
