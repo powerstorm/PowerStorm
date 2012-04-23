@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  today: 2011-10-09 14:43:09
+  temperature: 1.5
+  description: MyString
+
+two:
+  today: 2011-10-09 14:43:09
+  temperature: 1.5
+  description: MyString

@@ -1,0 +1,25 @@
+<%= form_for(@meter) do |f| %>
+  <% if @meter.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@meter.errors.count, "error") %> prohibited this meter from being saved:</h2>
+
+      <ul>
+      <% @meter.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :ip %><br />
+    <%= f.text_field :ip %>
+  </div>
+  <div class="field">
+    <%= f.label :building_id %><br />
+    <%= f.text_field :building_id %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

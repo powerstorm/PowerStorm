@@ -1,0 +1,42 @@
+
+.wrapper {
+	width:73.25%;
+	height:100%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.chart_wrapper {
+	height:60%;
+}
+
+#advanced_chart {
+	height:100%;
+}
+
+.info_table {
+	padding:5em;
+}
+
+.usage_info {
+	
+}
+
+.usage_info td {
+	/*border-top:1px solid gray; */
+	/*border-bottom:1px solid gray;*/
+	border-collapse:collapse;
+	padding-bottom:7px;
+}
+
+/*change tabs to be centered */
+
+#tabs .ui-tabs-nav {
+	height: 2.35em;
+	text-align: center;
+}
+#tabs .ui-tabs-nav li {
+	display: inline-block;
+	float: none;
+	margin: -.2em;
+}

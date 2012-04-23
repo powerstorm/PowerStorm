@@ -1,0 +1,25 @@
+<h1>Listing electricity_readings</h1>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Date time</th>
+    <th>Meter</th>
+    <th>Power</th>
+  </tr>
+  
+<% @electricity_readings.each do |electricity_reading| %>
+  <tr>
+    <td><%= electricity_reading.id %></td>
+    <td><%= electricity_reading.date_time %></td>
+    <td><%= electricity_reading.meter_id %></td>
+    <td><%= electricity_reading.power %></td>
+    <td><%= link_to 'Show', electricity_reading %></td>
+    <td><%= link_to 'Edit', edit_electricity_reading_path(electricity_reading) %></td>
+    <td><%= link_to 'Destroy', electricity_reading, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+<br />
+
+<%= link_to 'New Electricity reading', new_electricity_reading_path %>

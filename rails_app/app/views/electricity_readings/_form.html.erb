@@ -1,0 +1,29 @@
+<%= form_for(@electricity_reading) do |f| %>
+  <% if @electricity_reading.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@electricity_reading.errors.count, "error") %> prohibited this electricity_reading from being saved:</h2>
+
+      <ul>
+      <% @electricity_reading.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :date_time %><br />
+    <%= f.datetime_select :date_time %>
+  </div>
+  <div class="field">
+    <%= f.label :meter_id %><br />
+    <%= f.text_field :meter_id %>
+  </div>
+  <div class="field">
+    <%= f.label :power %><br />
+    <%= f.text_field :power %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

@@ -1,0 +1,10 @@
+.main_text_field {
+	color: gray;
+	border-left:1px gray solid;
+	border-right:1px solid gray;
+	width:72%;
+	margin:auto;
+	margin-top:0px;
+	padding:5px;
+	height:100%;
+}

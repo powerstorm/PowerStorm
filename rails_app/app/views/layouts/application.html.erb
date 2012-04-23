@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PowerStorm</title>
+  <%= stylesheet_link_tag :all %>
+  <%= javascript_include_tag "global.js" %>
+  <%= javascript_include_tag "jquery.js" %>
+  <%= javascript_include_tag :defaults %>
+  <%= csrf_meta_tag %>
+  
+  
+  	<script type ='text/javascript'>
+  	jQuery.noConflict();
+  	
+  	//console.log($(document));
+	jQuery(document).ready(function(){
+	  //console.log('in function');
+		jQuery('#navigation li a').append('<span class="hover"></span>');
+		jQuery('#nav').css("opacity", "0");
+		
+		// on hover over nav bar, open the powerstorm picture and fade in the nav buttons
+		jQuery('#head').hover(function(){
+			var width = jQuery('#head').outerWidth()/2;
+			jQuery('#logo_left').animate({left:(width*-1)}, {queue:false,duration:500});
+			jQuery('#logo_right').animate({right:(width*-1)}, {queue:false,duration:500});
+			jQuery('#nav').animate({opacity:1}, 500);
+		}, function(){
+			jQuery('#logo_left').animate({left:0}, {queue:false,duration:500});
+			jQuery('#logo_right').animate({right:0}, {queue:false,duration:500});
+			jQuery('#nav').animate({opacity:0}, 500);
+		});
+		
+		// on hover over a mouse button, display the selection animation
+		jQuery('#navigation li a').hover(function() {
+			//console.log($(this));
+			jQuery('.hover', this).stop().animate({
+			'opacity': 1
+			}, 700);
+		},function(){
+					
+			// Stuff that happens when you unhover + the stop()
+			jQuery('.hover', this).stop().animate({
+				'opacity': 0
+				}, 700)
+		});
+		
+		jQuery(window).resize(function() {
+			
+		});
+	});
+
+	</script>
+  
+</head>
+<body>
+
+<header id="head">
+	
+	<div id="nav">
+		<ul id="navigation">
+			<li><a class="home" href="/"></a></li>
+			<% if params[:on_show_page] %>
+				<li style="display: block">
+					<% if session[:view_mode] == "basic" %>
+						<a class="advanced" href="/change_view_mode/advanced"></a>
+					<% elsif session[:view_mode] == "advanced" %>
+						<a class="basic" href="/change_view_mode/basic"></a>
+					<% end %>
+				</li>
+			<% end %>
+			<li><a class="about" href="/about"></a></li>
+			<li><a class="contact" href="/contact"></a></li>
+		</ul>
+	</div>
+
+	<div id="logo_holder">
+		<div id="logo_left" class="logo">
+			<img src="/images/powerstorm_logo_left.png" alt="PowerStorm Logo Left"/>
+		</div>
+		<div id="logo_right" class="logo">
+			<img src="/images/powerstorm_logo_right.png" alt="PowerStorm Logo Right"/>
+		</div>
+	</div>
+	
+	
+</header>
+
+<%= yield %>
+
+</body>
+</html>

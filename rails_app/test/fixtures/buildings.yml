@@ -1,0 +1,13 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  building_name: MyString
+  occupants: 1
+  capacity: 1
+  area: 1
+
+two:
+  building_name: MyString
+  occupants: 1
+  capacity: 1
+  area: 1

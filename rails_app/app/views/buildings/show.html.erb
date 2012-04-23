@@ -1,0 +1,5 @@
+<% if session[:view_mode] == "advanced" %>
+	<%= render 'advanced' %>
+<% else %>
+	<%= render 'basic' %>
+<% end %>

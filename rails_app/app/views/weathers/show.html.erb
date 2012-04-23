@@ -1,0 +1,20 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Today:</b>
+  <%= @weather.today %>
+</p>
+
+<p>
+  <b>Temperature:</b>
+  <%= @weather.temperature %>
+</p>
+
+<p>
+  <b>Description:</b>
+  <%= @weather.description %>
+</p>
+
+
+<%= link_to 'Edit', edit_weather_path(@weather) %> |
+<%= link_to 'Back', weathers_path %>

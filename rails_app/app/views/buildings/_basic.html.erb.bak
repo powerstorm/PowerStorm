@@ -1,0 +1,153 @@
+<%= javascript_include_tag "https://www.google.com/jsapi?key=ABQIAAAAI7rPaLrZl7leSmpOaDtSOxSG1Mx8gbiFAvvF7yNngCyk8ZA9PxTh55PlIvYX2xi5B0dKqNcI8qsneQ" %>
+
+
+
+<script type="text/javascript">
+	var colors = ['aqua', 'lawngreen', 'yellow', 'red'];
+	var a = location.href.split('/');
+	var abr = a[a.length - 1];
+	
+	google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(draw_charts);
+	
+	function draw_charts() {
+		draw_barchart();
+		draw_daily_chart();
+	}
+	
+	
+	then = new Date();
+	then.changeTime('Month', 5);	
+	
+	console.log(then.sqlSafeStr());
+	console.log(new Date());
+
+	
+	
+	function draw_daily_chart() {
+		var from_date, to_date;
+		from_date = (new Date()).changeTime('Hours', -24).sqlSafeStr();
+		to_date = (new Date()).sqlSafeStr();
+		
+		jQuery.post('/ajax_update', {building: abr, type: "Hour", to: to_date, from: from_date}, function(response_data) {
+			var rd = eval(response_data).result;
+			console.log(rd);
+			var data = new google.visualization.DataTable();
+			data.addColumn('string', 'Hour');
+			data.addColumn('number', 'KWh');
+			data.addRows(rd.length + 1);
+			
+			data.setValue(0, 0, "12 AM");
+			data.setValue(6, 0, "6 AM");
+			data.setValue(12, 0, "12 PM");
+			data.setValue(18, 0, "6 PM");
+						
+			for (var i = 0; i < rd.length + 1; ++i) {
+				data.setValue(i, 1, rd[i]);
+			}
+
+			var chart = new google.visualization.LineChart(document.getElementById('daily_chart'));
+			chart.draw(data, {height: 400,
+							  title: 'Electricity Usage',
+							  legend: 'none',
+							  hAxis: {maxValue: 1, minValue: 24}
+							 });
+		});
+	}
+	
+	function draw_barchart() {
+		jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
+			var d = eval(data);
+			//console.log(d);
+			var data = new google.visualization.DataTable();
+			data.addColumn('number', 'KWh');
+			data.addRows(1);
+			data.setValue(0, 0, d.current);
+			
+			var data_range = Math.ceil(d.max);
+			var quadrant = Math.ceil(data_range / 4.0);
+			var bar_color = 0;
+			var cc = d.current;		
+			
+			data.setValue(0, 0, cc);
+			
+			if (cc <= quadrant) {
+				bar_color = colors[0];
+			} else if (cc <= 2 * quadrant) {
+				bar_color = colors[1];
+			} else if (cc <= 3 * quadrant) {
+				bar_color = colors[2];
+			} else if (cc <= 4 * quadrant) {
+				bar_color = colors[3];
+			}
+			
+			var chart = new google.visualization.BarChart(document.getElementById('chart'));
+			chart.draw(data, {title: 'Current Electricity Usage',
+							  colors: [bar_color],		// rgb = a << 24 | r << 16 | g << 8 | b
+							  hAxis: {maxValue: d.max, minValue: d.min},
+							  legend: 'none',
+							  /*backgroundColor: {stroke:'gray', strokeWidth:5}*/});
+			jQuery('#current_usage').html(cc);
+			var cph = roundNumber(cc * 0.079, 2);
+			jQuery('#current_cost').html('$' + cph);
+			/*
+			jQuery('#current_cost').html('$' + cph + ' per hour<br />'
+				+ '$' + cph*24 + ' per day<br />'
+				+ '$' + cph*24*30 + ' per month<br />');
+				*/
+		});
+	}
+
+	window.onresize = function(event) {
+		draw_charts();
+	}
+	
+	function update_info() {
+		setInterval(function() {
+		  draw_charts();
+	    }, 5 * 60000);
+	}
+	
+	window.onload = function () {
+	  var a = location.href.split('/');
+	  var abr = a[a.length - 1];
+	  update_info();
+	  jQuery.post('/ajax_update', {building: abr, type: "load"}, function(data) {
+		//console.log(data);
+	  });
+	}
+
+    </script>
+
+<div class="colmask threecol">
+	<div class="colmid">
+		<div class="colleft">
+			<div class="col1">
+				<!-- middle column -->
+				<div class="content">
+					<div class="chart_container_basic" id="daily_chart">Chart here</div>
+				</div>
+			</div>
+			<div class="col2">
+				<!-- left column -->
+				<div class="content">
+					<h3> Current Electricity Usage: </h3>
+					<!-- </br></br></br></br></br></br> -->
+					<p id="current_usage" class="stat_display"></br></p>
+					<p id="usage_units" class="units">kWh</p>
+				</div>				
+			</div>
+			<div class="col3">
+				<!-- right column -->
+				<div class="content">
+					<h3>Current Cost:</h3>
+					<!-- </br></br></br></br></br></br> -->
+					<p id="current_cost" class="stat_display"></br></p>
+					<p id="cost_units" class="units">per hour</p>
+				</div>
+			</div>
+		</div>
+	</div>
+<div>
+
+<div id="chart"> <h1>Show me the chart!</h1></div>

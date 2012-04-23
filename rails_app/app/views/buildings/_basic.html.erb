@@ -1,0 +1,407 @@
+<%= javascript_include_tag "https://www.google.com/jsapi?key=ABQIAAAAI7rPaLrZl7leSmpOaDtSOxSG1Mx8gbiFAvvF7yNngCyk8ZA9PxTh55PlIvYX2xi5B0dKqNcI8qsneQ",
+ "jquery.anythingslider.min.js", "jquery.anythingslider.fx.min.js", "color_conversions.js" %>
+ 
+
+<!-- Anything Slider -->
+	<link rel="stylesheet" href="/stylesheets/anythingslider.css"> 
+<!--
+	<script src="javascripts/jquery.anythingslider.js"></script>
+	<script src="javascripts/jquery.anythingslider.fx.js"></script>
+	-->
+
+<script type="text/javascript">
+	//var colors = ['aqua', 'lawngreen', 'yellow', 'red'];
+	var a = location.href.split('/');
+	var abr = a[a.length - 1];
+	
+	google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(draw_charts);
+	
+	function draw_charts() {
+		draw_barchart();
+		//draw_daily_chart();
+	}
+	
+	
+	then = new Date();
+	then.changeTime('Month', 5);	
+	
+	console.log(then.sqlSafeStr());
+	console.log(new Date());
+
+	
+	
+	function draw_daily_chart() {
+		var from_date, to_date;
+		from_date = (new Date()).changeTime('Hours', -24).sqlSafeStr();
+		to_date = (new Date()).sqlSafeStr();
+		
+		jQuery.post('/ajax_update', {building: abr, type: "Hour", to: to_date, from: from_date}, function(response_data) {
+			var rd = eval(response_data).result;
+			console.log(rd);
+			var data = new google.visualization.DataTable();
+			data.addColumn('string', 'Hour');
+			data.addColumn('number', 'KWh');
+			data.addRows(rd.length + 1);
+			
+			data.setValue(0, 0, "12 AM");
+			data.setValue(6, 0, "6 AM");
+			data.setValue(12, 0, "12 PM");
+			data.setValue(18, 0, "6 PM");
+						
+			for (var i = 0; i < rd.length + 1; ++i) {
+				data.setValue(i, 1, rd[i]);
+			}
+
+			var chart = new google.visualization.LineChart(document.getElementById('daily_chart'));
+			chart.draw(data, {height: 400,
+							  title: 'Electricity Usage',
+							  legend: 'none',
+							  hAxis: {maxValue: 1, minValue: 24}
+							 });
+		});
+	}
+	
+	// returns the kWh value in watts over a specified number of minutes
+	function watts( kwh, time_interval ) {
+	  return kwh * 1000 * 60 / time_interval;
+	}
+	
+	// returns the cost of electricity consumption per hour in dollars
+	function cost_per_hour( kwh, time_interval, cost_per_kwh ) {
+	  return roundNumber( kwh * 60 / time_interval * cost_per_kwh, 2 ).toFixed(2);
+	}
+	
+	// returns the cost of electricity consumption per hour in dollars
+	function cost_per_day( kwh, time_interval, cost_per_kwh ) {
+	  return roundNumber( kwh * 60 / time_interval * 24 * cost_per_kwh, 2 ).toFixed(2);
+	}
+	
+	// returns the cost of electricity consumption per hour in dollars
+	function cost_per_month( kwh, time_interval, cost_per_kwh ) {
+	  return roundNumber( kwh * 60 / time_interval * 24 * 31 * cost_per_kwh, 2 ).toFixed(2);
+	}
+	
+	// returns the cost of electricity consumption per hour in dollars
+	function cost_per_year( kwh, time_interval, cost_per_kwh ) {
+	  return roundNumber( kwh * 60 / time_interval * 24 * 31 * 12 * cost_per_kwh, 2 ).toFixed(2);
+	}
+	
+	// returns the percent increase or decrease in electricity consumption
+	function percent_difference( current, historical ) {
+	  return (current - historical) / historical;
+	}
+	
+	/********************************************************************************************************************
+	* takes a percent_difference in energy usage and calculates the hex for the color that the current electricity consumption equals
+	* also takes a bias to bias the color towards red or towards cyan to push towards using more or LESS energy
+	* 
+	* @param {float} perc_dif The percent difference of the the current energy usage value versus a past average
+	* @param {float} bias     An additional value used to modify the percent difference to keep the color more red or more blue
+	*/
+	function update_color_rating ( perc_dif, bias ) {
+	  var percent_difference = perc_dif + bias;
+	  if ( percent_difference < -.3 )
+	    percent_difference = -.3;
+	  else if ( percent_difference > .3 )
+	    percent_difference = .3;
+	    
+	  console.log( "Bias: " + bias );  
+	  console.log( "Biased Percent Difference: " + percent_difference );
+	  // normalize percent difference scale to have + .3 be zero (corresponding to 0 degree hue or red)
+	  // and -.3 be 180 (corresponding to 180 degree hue or cyan)
+	  var hue_value = (percent_difference - .3) * -1 * 300;
+	  
+	  var rgb_value = hsvToRgb( hue_value, 100, 100 );
+	  
+	  return rgbToHex( rgb_value );
+	}
+	
+	function update_equiv_values ( weighted_current_watts, weighted_current_kwh, time_interval, cost_per_kwh ) {
+	  
+	  // environmental
+	  jQuery('#equiv_lb').html( roundNumber(weighted_current_watts / 60, 0) );
+	  jQuery('#equiv_em').html( roundNumber(.00068956 * weighted_current_kwh * 60 / time_interval * 24, 3 ) );
+	  jQuery('#equiv_perc').html( roundNumber( weighted_current_kwh * 60 / time_interval * 24 / 27250 * 100, 2) );
+	  
+	  // costs
+	  jQuery('#equiv_year').html( '$' + cost_per_year( weighted_current_kwh, time_interval, cost_per_kwh ) );
+	  jQuery('#equiv_month').html('$' + cost_per_month( weighted_current_kwh, time_interval, cost_per_kwh ) );
+	  jQuery('#equiv_day').html(  '$' + cost_per_day( weighted_current_kwh, time_interval, cost_per_kwh ) );
+	 // jQuery('#equiv_year').html( cost_per_year( weighted_current_kwh, time_interval, cost_per_kwh ) );
+	}
+	
+	function draw_barchart() {
+		jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
+			var d = eval(data);
+			console.log(d);
+			
+      // variables returned from function
+      var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
+			
+			var data_range = watts( Math.ceil(d.max), t_interval) / 1000;     // energy bar in units of kilowatts
+			var quadrant = watts( Math.ceil(data_range / 4.0), t_interval);
+			var bar_color = 0;
+			var real_current_watts = watts( d.real_current_kwh, t_interval);
+			var weighted_current_watts = watts( d.weighted_current_kwh, t_interval );
+			var weighted_current_kwh = d.weighted_current_kwh;
+			var real_current_kwh = d.real_current_kwh;
+			var feb_sum = d.feb_sum;
+			var cost_per_kwh = 0.079    // determined from Whitworth facilities documentation
+			
+			// Set up graph
+			var data = new google.visualization.DataTable();
+			data.addColumn('string', 'label_value');
+			data.addColumn('number', 'Kilowatts');
+			data.addRows([
+			  ['Kilowatts', weighted_current_watts/1000]
+			 ]);
+			
+			// get the color rating, bias it towards red colors by 10%
+			var color_rating = update_color_rating( percent_difference( weighted_current_kwh, feb_sum), 0.15 );
+			console.log( "Time Interval: " + t_interval );
+			console.log( "Feb Sum: " + feb_sum );
+			console.log( "Weighted Current Sum: " + weighted_current_kwh);
+			console.log( "Real Current kWh: " + real_current_kwh );
+			console.log( "Percent Difference: " + percent_difference( weighted_current_kwh, feb_sum) );
+			console.log( "Color: " + color_rating );
+			
+			
+			var chart = new google.visualization.BarChart(document.getElementById('chart'));
+			chart.draw(data, {title: 'Current Electricity Usage',
+							  colors: [color_rating],		// rgb = a << 24 | r << 16 | g << 8 | b
+							  hAxis: {maxValue: data_range, minValue: d.min},
+							  legend: 'none',
+							  /*backgroundColor: {stroke:'gray', strokeWidth:5}*/});
+							  
+			jQuery('#current_usage').html( parseInt(weighted_current_watts, 10) );
+			jQuery('#usage_units').html('Watts');
+			var cph = cost_per_hour( weighted_current_kwh, t_interval, cost_per_kwh );
+			var cpd = cost_per_day ( weighted_current_kwh, t_interval, cost_per_kwh );
+			var cpm = cost_per_month( weighted_current_kwh, t_interval, cost_per_kwh );
+			jQuery('#current_cost').html('$' + cpm);
+			jQuery('#cost_units').html('per month');
+			
+			update_equiv_values( weighted_current_watts, weighted_current_kwh, t_interval, cost_per_kwh );
+
+		});
+	}
+
+	window.onresize = function(event) {
+		//draw_charts();
+	}
+	
+	function update_info() {
+		setInterval(function() {
+		  draw_charts();
+	    }, 5 * 60000);
+	}
+	
+	function timedRefresh(timeoutPeriod) {
+	  setTimeout("location.reload(true);", timeoutPeriod);
+	}
+	
+/*	
+	function doubleRefresh() {
+	  location.reload(true);
+	  timeout2 = setTimeout( 
+	    "function(){location.reload(true); clearTimeout( timeout2 );}", 1000 * 30 );	    
+	}
+	
+	function beatSafeConnectReauth() {
+	  timeout1 = setTimeout( "doubleRefresh();", 1000 * 60 );
+	}
+*/
+	
+	window.onload = function () {
+	  var a = location.href.split('/');
+	  var abr = a[a.length - 1];
+	  update_info();
+	  
+	  jQuery('#center_column_slider').anythingSlider({
+	    // Appearance
+	    expand          : true,     // expand to fit parent div
+	    resizeContents  : false,    // don't automatically resize content
+	    
+	    buildArrows     : false,    // no navigation arrows
+	    buildNavigation : false,
+	    buildStartStop  : false,
+	    
+	    toggleArrows    : true,     // show navigation on hover
+	    toggleControls  : true,     // show controls on hover
+	    
+	    // navigation
+	    hashTags        : false,    // don't append slide urls to url
+	    
+	    // Slideshow Options
+	    autoPlay        : true,     // automatically start the slide show
+	    
+	    // Times
+	    delay           : 30000,    // how long between automatic slide advance
+	    
+	  });
+	  
+	  
+	  /*jQuery('#left_column_slider').anythingSlider({
+	    // Appearance
+	    expand          : true,     // expand to fit parent div
+	    resizeContents  : false,    // don't automatically resize content
+	    
+	    buildArrows     : false,    // no navigation arrows
+	    buildNavigation : false,
+	    buildStartStop  : false,
+	    
+	    toggleArrows    : true,     // show navigation on hover
+	    toggleControls  : true,     // show controls on hover
+	    
+	    // navigation
+	    hashTags        : false,    // don't append slide urls to url
+	    
+	    // Slideshow Options
+	    autoPlay        : true,     // automatically start the slide show
+	    
+	    // Times
+	    delay           : 30000,    // how long between automatic slide advance
+	    
+	  });*/
+	  
+	  jQuery.post('/ajax_update', {building: abr, type: "load"}, function(data) {
+		  console.log(data);
+		  
+		  // reload the page every hour or so to try and avoid Whitworth's stupid safe connect redirect stuff
+		  //beatSafeConnectReauth();
+		
+	  });
+	}
+
+    </script>
+
+<div class="colmask threecol">
+	<div class="colmid">
+		<div class="colleft">
+			<div class="col1">
+				<!-- middle column -->
+				<div class="content">
+				  
+					<!-- <div class="chart_container_basic" id="daily_chart">Chart here -->
+					  <!-- Define slider dimensions here -->
+	          <style>
+	          
+	            #center_column_slider, #cebter_column_slider li {
+                  
+                  list-style: none;
+              }
+              
+	            #center_column_slider div {
+                text-align: center;
+              }
+              #center_column_slider div:before {
+                content: '';
+                display: inline-block;
+                height: 100%; 
+                vertical-align: middle;
+
+              }
+              #center_column_slider img {
+                display: inline-block;
+                vertical-align: middle;
+              }
+              
+	          </style>
+					  <!-- Simple AnythingSlider -->
+
+	          <ul id="center_column_slider">
+	            
+	            <li>
+		              <h3>Equivalencies:</h3>
+		              <table class = "center_table">
+		                <tr>
+		                  <td>
+		                    <h4># of 60 Watt Light Bulbs Turned On:</h4>
+		                    <p id = "equiv_lb"></p>
+		                  </td>
+		                  <td>
+		                    <h4>Cost per Year:</h4>
+		                    <p id = "equiv_year"></p>
+		                  </td>
+		                </tr>
+		                
+		                <tr>
+		                  <td>
+		                    <h4>Tons of CO2 Emitted per Day:</h4>
+		                    <p id = "equiv_em"></p>
+		                  </td>
+		                  <td>
+		                    <h4>Cost per Month:</h4>
+		                    <p id = "equiv_month"></p>
+		                  </td>
+	                  </tr>
+	                  
+	                  <tr>
+	                    <td>
+	                      <h4>% of Total Whitworth Electricity Consumption:</h4>
+	                      <p id = "equiv_perc"></p>
+	                    </td>
+	                    <td>
+	                      <h4>Cost per Day:</h4>
+		                    <p id = "equiv_day"></p>
+	                    </td>
+                    </tr>
+                  </table>
+              </li>
+
+		          <li><div><img src="/images/building_slider/tip1.png" alt=""></div></li>
+		          
+		          
+
+		          <li><div><img src="/images/building_slider/tip2.png" alt=""></div></li>
+
+		          <li><div><img src="/images/building_slider/tip3.png" alt=""></div></li>
+
+		          <li><div><img src="/images/building_slider/tip4.png" alt=""></div></li>
+		          
+		          <li><div><img src="/images/building_slider/tip5.png" alt=""></div></li>
+
+	          </ul>
+
+	          <!-- END AnythingSlider -->
+					
+					<!--<iframe src="chart_day.html"/>-->
+				</div>
+			</div>
+			<div class="col2">
+				<!-- left column -->
+				<div class="content">
+					<h3> Current Electricity Usage: </h3>
+					<!-- </br></br></br></br></br></br> -->
+					<p id="current_usage" class="stat_display"></br></p>
+				  <p id="usage_units" class="units"></p>
+				  <!--
+				  <ul id="left_column_slider">
+				    
+				    <li>
+				      <p id="current_usage" class="stat_display"></br></p>
+				      <p id="usage_units" class="units">kWh</p>
+				    </li>
+				      
+				    <li>
+				      <p id="current_usage" class="stat_display"></br></p>
+				      <p id="usage_units" class="units">kWh</p>
+				    </li>
+				  </ul> -->
+				</div>				
+			</div>
+			<div class="col3">
+				<!-- right column -->
+				<div class="content">
+					<h3>Current Cost:</h3>
+					<!-- </br></br></br></br></br></br> -->
+					<p id="current_cost" class="stat_display"></br></p>
+					<p id="cost_units" class="units"></p>
+				</div>
+			</div>
+		</div>
+	</div>
+<div>
+
+<div id="chart">Energy Bar Chart</div>

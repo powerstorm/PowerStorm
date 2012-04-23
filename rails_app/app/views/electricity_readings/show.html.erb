@@ -1,0 +1,20 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Date time:</b>
+  <%= @electricity_reading.date_time %>
+</p>
+
+<p>
+  <b>Meter:</b>
+  <%= @electricity_reading.meter_id %>
+</p>
+
+<p>
+  <b>Power:</b>
+  <%= @electricity_reading.power %>
+</p>
+
+
+<%= link_to 'Edit', edit_electricity_reading_path(@electricity_reading) %> |
+<%= link_to 'Back', electricity_readings_path %>

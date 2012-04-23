@@ -1,0 +1,15 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Ip:</b>
+  <%= @meter.ip %>
+</p>
+
+<p>
+  <b>Building:</b>
+  <%= @meter.building_id %>
+</p>
+
+
+<%= link_to 'Edit', edit_meter_path(@meter) %> |
+<%= link_to 'Back', meters_path %>

@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  date_time: 2011-10-09 14:43:06
+  meter_id: 1
+  power: 1.5
+
+two:
+  date_time: 2011-10-09 14:43:06
+  meter_id: 1
+  power: 1.5

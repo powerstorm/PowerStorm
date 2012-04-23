@@ -1,0 +1,148 @@
+
+
+
+/*--------------------------------------------------
+	Layout Settings
+--------------------------------------------------*/
+
+header img{ width:100%; 
+	margin-bottom:0px;}
+	
+header { max-width:100%;
+	min-height:25px;
+	height:37px;
+	border-bottom: 1px solid gray;
+	padding-bottom: .5%;
+	overflow:hidden;
+}
+
+/*-----------------------------------------------
+	Logo CSS
+-----------------------------------------------*/
+.logo { 
+	overflow:hidden;
+	padding-bottom:.1%;
+	max-width:100%;
+}
+
+#logo_holder { 
+	overflow:hidden;
+	max-width:100%;}
+	
+#logo_left {	
+	background:white;
+	position:relative;
+	width:50%;
+	height:37px;
+}
+#logo_right { 	
+	background:white;
+	position:absolute;
+	right:0px;
+	top:8px;
+	width:50%;
+	height:37px;
+}
+		 
+#nav {
+	position:absolute;
+	width:670px;
+	margin-left:auto;
+	margin-right:auto;
+	left:0px;
+	right:0px;
+	top:-15px;
+	overflow:hidden;
+}
+
+/*-----------------------------------------------------
+	CSS for Buttons
+-----------------------------------------------------*/
+#navigation 
+{
+
+}
+
+#navigation li
+{
+	float:left;
+	display:block;
+}
+
+#navigation li a
+{
+	background-image:url(/images/nav_buttons.png);
+	display: block;
+	outline: none;
+	position: relative;
+	height: 50px;
+	text-decoration: none;
+	width: auto;
+}
+
+#navigation .home 
+{
+	background-position:0px 0px;
+	width:149px;
+}
+
+#navigation .advanced 
+{
+	background-position:-149px 0px;
+	width:150px;
+}
+
+#navigation .about 
+{
+	background-position:-299px 0px;
+	width:150px;
+}
+
+#navigation .contact 
+{
+	background-position:-449px 0px;
+	width:151px;
+}
+
+#navigation .basic 
+{
+	background-position:-599px 0px;
+	width:150px;
+}
+
+
+
+#navigation a .hover {
+	background: transparent  url(/images/nav_buttons.png) no-repeat;
+	display:block ;
+	opacity: 0;
+	position: relative;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+}
+
+#navigation .home .hover {
+	background-position: -0px -50px;
+	width:150px;
+}
+#navigation .advanced .hover{
+	background-position: -149px -50px;
+	width:151px;
+}
+#navigation .about .hover {
+	background-position: -299px -50px;
+	width:151px;
+}
+
+#navigation .contact .hover {
+	background-position: -449px -50px;
+	width:151px;
+}
+
+#navigation .basic .hover {
+	background-position: -599px -50px;
+	width:151px;
+}
+
