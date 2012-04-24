@@ -4,8 +4,10 @@ development:
   adapter: mysql2
   encoding: utf8
   database: powerstorm_data
-  username: root
-  password: 1-xiXznaCcj
+  username: rails_powerstorm
+  host: 10.15.2.1
+  port: 5875
+  password: 0wtwFK-a2xn
   socket: /var/run/mysqld/mysqld.sock
   flags: 196608
 
