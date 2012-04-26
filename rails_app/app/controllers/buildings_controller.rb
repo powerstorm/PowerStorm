@@ -1,6 +1,6 @@
 class BuildingsController < ApplicationController
   skip_before_filter :authorize, :only => [:index, :show, :ajax_update, :change_view_mode]
-  @@TIME_OFFSET = 1.hours
+  @@TIME_OFFSET = 90.minutes
   
   # GET /buildings
   # GET /buildings.xml
@@ -124,7 +124,7 @@ class BuildingsController < ApplicationController
 		  top_readings = meter.electricity_readings.order(:date_time).reverse_order
 		  
 		  # gets the time interval between readings in minutes
-			time_interval = (top_readings.first.date_time - top_readings.second.date_time) / 60  
+			time_interval = ((top_readings.first.date_time - top_readings.second.date_time) / 60 ).to_i
 			info[:readings_time_interval] = time_interval
 			
 			puts("Time Interval: " + time_interval.inspect)
@@ -136,25 +136,27 @@ class BuildingsController < ApplicationController
 			
 			for i in 0..meter.electricity_readings.length-1
 			  index = i
-			  puts ( '!@!@!@ Index: ' + index.inspect + 'Num: ' + (top_readings[i].date_time - top_readings[i + 1].date_time).inspect)			    
+			  puts ( '!@!@!@ Index: ' + index.inspect + 'Num: ' + ((top_readings[i].date_time - top_readings[i + 1].date_time)/60).round.to_i.inspect)			    
         
-			  if ((top_readings[i].date_time - top_readings[i + 1].date_time)/60 != time_interval) or i == 1300
+			  if ( ((top_readings[i].date_time - top_readings[i + 1].date_time)/60).round.to_i != time_interval) or i == 1300
           least_recent_date_time_with_current_time_interval = meter.electricity_readings.order(:date_time).reverse_order[i].date_time
 			    break
 			  end
 			end
 			
-			puts ("Index of least_recent_time_interval: " + index.inspect )
+			puts ("Index of least_4recent_time_interval: " + index.inspect )
 			
 			# just get max and min during the current time_interval period
 			info[:min] += meter.electricity_readings.where("date_time > ?", least_recent_date_time_with_current_time_interval).order(:power).first.power
 			info[:max] += meter.electricity_readings.where("date_time > ?", least_recent_date_time_with_current_time_interval).order(:power).reverse_order.first.power
 			
+			puts( '!!! Max, Min Complete' )
+			
 			# floor time to nearest time_interval minutes
 			rounded_time = current_reading_time - ( current_reading_time.min % time_interval.to_i ).minutes
 			rounded_time = rounded_time - rounded_time.sec.seconds
 			
-			#puts("!!!!!!!!!!!!!!!! rounded_time - " + rounded_time.inspect)
+			puts("!!!!!!!!!!!!!!!! rounded_time - " + rounded_time.inspect)
 			
 			#puts(meter.electricity_readings.where(:date_time => rounded_time.inspect).order(:date_time).reverse_order.first.power.inspect)
 			
@@ -162,7 +164,7 @@ class BuildingsController < ApplicationController
 			
 			readings_per_hour = 60/time_interval
 			
-			
+			puts( '!!! After real_current_kwh' )
 			
 			# We return a weighted current electricity rating over readings from the past hour to account for some of the drastic spikes
 			# we see in energy usage due to the nature of electricity consumption. This is used to control the color_rating. When
@@ -178,9 +180,9 @@ class BuildingsController < ApplicationController
 		  
 		  # get index of the offset current time row
 		  offset_index = 0
-		  while meter.electricity_readings.order(:date_time).reverse_order[offset_index].date_time.inspect[18..25] != rounded_time.inspect[12..19]
-		    #puts("Meter: " + meter.electricity_readings.order(:date_time).reverse_order[offset_index].date_time.inspect)
-		    #puts("Rounded_time: " + rounded_time.inspect)
+		  while meter.electricity_readings.order(:date_time).reverse_order[offset_index].date_time.inspect[17..21] != rounded_time.inspect[11..15]
+		    puts("Meter: " + meter.electricity_readings.order(:date_time).reverse_order[offset_index].date_time.inspect[0..21])
+		    puts("Rounded_time: " + rounded_time.inspect[0..15])
 		    offset_index += 1
 		  end
 		  
@@ -188,7 +190,7 @@ class BuildingsController < ApplicationController
 			  info[:weighted_current_kwh] += (0.5/readings_per_hour * (readings_per_hour - i))*(top_readings[offset_index + i].power)
 			end
 			
-			#info[:weighted_current_kwh] = info[:weighted_current_kwh]/weighting_added_fat
+      puts( '!!! Weighted Current kWh set.' )
 			
 			
 			# Currently, readings from the month of February during the same hour as the current_time hour are used as the baseline
