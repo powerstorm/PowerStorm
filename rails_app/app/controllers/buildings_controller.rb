@@ -93,9 +93,9 @@ class BuildingsController < ApplicationController
     end
   end
   
+  #This function calls the Routines in the MySQL database
   def send_chart info, period, building_id, from_date, to_date
-	puts(" |||||||||||||||||||  CALL chartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');")
-	info[:result] = Building.connection.execute("CALL powerstorm_data.chartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');").to_a.transpose.first.collect { |i| (i * 100).to_i / 100.0 }
+	  info[:result] = Building.connection.execute("CALL powerstorm_data.chartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');").to_a.transpose.first.collect { |i| (i * 100).to_i / 100.0 }
   end
   
   def ajax_update
@@ -237,7 +237,12 @@ class BuildingsController < ApplicationController
 			#Date.parse(params[:from])
 			#info[:result] = Building.connection.execute("CALL chartByHour(11, '2009-10-25 18:44:11', '2009-10-26 18:44:11');").to_a.transpose.first;
 			#Building.find(11).connection.execute("CALL chartByHour(11, '2009-10-25 18:44:11', '2009-10-26 18:44:11');").to_a.transpose.first
-			send_chart(info, params[:type], @building.id, params[:from], params[:to])
+			
+			#puts(" $$$$$$$$ #{period}(#{building_id}, '#{from_date}', '#{to_date}');")
+			puts("$$$" + params.inspect)
+
+      send_chart(info, params[:type], @building.id, params[:from], params[:to])
+			#send_chart(info, params[:type], @building.id, '2012-4-27 13:51:16', '2012-4-28 13:51:16')
 
 		else
 			puts("||||||||||||||||         CALL powerstorm_data.getSumsForBuilding(#{@building.id},'#{(Time.now - @@TIME_OFFSET).to_s(:db)}')")

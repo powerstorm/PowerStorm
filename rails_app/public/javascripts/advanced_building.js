@@ -34,6 +34,8 @@ function draw_chart() {
 				data.addColumn('number', 'KWh');
 				data.addRows(rd.length + 1);
 				
+				
+				
 				/*data.setValue(0, 0, "12 AM");
 				data.setValue(6, 0, "6 AM");
 				data.setValue(12, 0, "12 PM");
@@ -50,6 +52,11 @@ function draw_chart() {
 			});
 		}
 	}
+	
+	function label_axis(){
+		
+	}
+	
 	
 	function reload_todays_usage() {
 		if (tab_index != 0) {
