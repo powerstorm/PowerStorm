@@ -8,6 +8,7 @@ var usage_lookup = ['daily', 'monthly', 'yearly', 'monthly'];
 var refresher;
 
 function draw_chart() {
+		var graph_type;
 		if (tab_index != 0) {
 			var from_date, to_date;
 			to_date = (new Date()).sqlSafeStr();
@@ -15,15 +16,19 @@ function draw_chart() {
 			switch(i) {
 				case 0:
 					from_date = (new Date()).changeTime('Hours', -24).sqlSafeStr();
+					graph_type = "Hours";
 					break;
 				case 1:
 					from_date = (new Date()).changeTime('Month', -1).sqlSafeStr();
+					graph_type = "Month";
 					break;
 				case 2:
 					from_date = (new Date()).changeTime('FullYear', -1).sqlSafeStr();
+					graph_type = "FullYear";
 					break;
 				case 3:
 					from_date = (new Date(2009, 8, 18)).sqlSafeStr();
+					graph_type = "YTD";
 					break;
 			}
 			
@@ -34,10 +39,23 @@ function draw_chart() {
 				data.addColumn('number', 'KWh');
 				data.addRows(rd.length + 1);
 				
-				/*data.setValue(0, 0, "12 AM");
-				data.setValue(6, 0, "6 AM");
-				data.setValue(12, 0, "12 PM");
-				data.setValue(18, 0, "6 PM");*/
+				//Label the graph using the appropriate labels, based on the type of the graph
+				if(graph_type == "Hours"){
+					data.setValue(0, 0, "12 AM");
+					data.setValue(6, 0, "6 AM");
+					data.setValue(12, 0, "12 PM");
+					data.setValue(18, 0, "6 PM");
+				}else if(graph_type == "Month"){
+
+				}else if(graph_type == "FullYear"){
+
+				}else if(graph_type == "YTD"){
+
+				}else{
+					//Don't know how you got here
+				}
+				
+				
 							
 				for (var i = 0; i < rd.length + 1; ++i) {
 					data.setValue(i, 1, rd[i]);
@@ -50,6 +68,7 @@ function draw_chart() {
 			});
 		}
 	}
+	
 	
 	function reload_todays_usage() {
 		if (tab_index != 0) {

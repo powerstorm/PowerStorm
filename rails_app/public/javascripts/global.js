@@ -9,7 +9,6 @@ Date.prototype.changeTime = function (incr, dif) {
 }
 
 Date.prototype.sqlSafeStr = function (param) {
-	this.changeTime('Date', -365);
 	var str = this.getFullYear() + '-'
 		+ (this.getMonth() + 1) + '-'
 		+ this.getDate() + ' '
