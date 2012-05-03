@@ -176,31 +176,6 @@ end
 	weighting_added_fat = 0   # this variable declared outside loop in order to account for above
 	first_loop = true         # flag to use so that certain operations in the loop below only happen once		#info[:real_current_kwh] += meter.electricity_readings.where("date_time <= ?", rounded_time.inspect).order(:date_time).reverse_order.first.power
 	
-	
-	#for each meter on the building
-	rgtop_readings = Array.new()
-	@building.meters.each do |meter|
-		#get the 12 most recent readings for each meter and put the results into an array
-		rgtop_readings.push(meter.electricity_readings.select("date_time,power").order(:date_time).reverse_order.limit(ReadingsPerHour));
-	end
-	#with our array we now add up the values by datetime into a hash
-	#hash_readings = get_usage @building, current_reading_time - 1.hour, current_reading_time
-	#for each query get each record 
-	puts("rgtop_readings is #{rgtop_readings.inspect}")
-	#moved to get_usage
-	# hash_readings = Hash.new()
-	# for i in 0 .. rgtop_readings.length - 1 do 
-		# # sum up the readings for each record
-		# meter_readings = rgtop_readings[i]
-		# meter_readings.each  do |reading|
-			# if not hash_readings[reading.date_time].nil? then 
-				# hash_readings[reading.date_time] += reading.power
-			# #set the current time to the greatest time in the array
-			# else 
-				# hash_readings[reading.date_time] = reading.power
-			# end
-		# end
-	# end
 	hash_readings = get_top_usage @building, ReadingsPerHour
 	current_time = hash_readings.keys.max
 	info[:max] = hash_readings.values.max
@@ -255,11 +230,11 @@ end
 	send_response info
   end
   
-  def update_today
-	info = {:current => 0, :usage => 0, :sqft => 0, occupants => 0}
+  def update_today params
+	info = {:current => 0, :usage => 0, :sqft => 0, :occupants => 0}
 	@building = get_building(params[:building])
-	info[:sqft] = @building.sqft
-	info[:occupants] = @building.occupants
+	info[:sqft] = @building.area
+	info[:occupants] = @building.capacity
 	current_reading_time = Time.now - @@TIME_OFFSET
 	usage_hash = get_usage(@building, (current_reading_time - 1.day), current_reading_time)
 	info[:usage] = usage_hash.values.sum

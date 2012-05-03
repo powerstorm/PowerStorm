@@ -73,8 +73,8 @@ function draw_chart() {
 	function reload_todays_usage() {
 		if (tab_index != 0) {
 			var i = tab_index - 1;
-			
-			$JQuery.post('/ajax_update', {building: abr, type: 'todays_usage'/*, from: from_date, to: to_date*/}, function(response_data) {
+			console.log("We are in reload_todays_usage")
+			$j.post('/ajax_update', {building: abr, type: 'todays_usage'/*, from: from_date, to: to_date*/}, function(response_data) {
 				var d = eval(response_data);
 				var l = tag_lookup[i].toLowerCase();
 				var ll = usage_lookup[i];
