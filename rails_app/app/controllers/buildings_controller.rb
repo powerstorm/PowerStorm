@@ -189,8 +189,10 @@ end
 	rounded_time = rounded_time - rounded_time.sec.seconds
 	# #sort sorts in descending order
 	timesInOrder = hash_readings.keys.sort
+	weight = 0.5
 	for i in 0..ReadingsPerHour - 1
-		info[:weighted_current_kwh] += 	(0.5/ReadingsPerHour * (ReadingsPerHour - i) * hash_readings[timesInOrder[i]])
+		info[:weighted_current_kwh] += 	(weight * hash_readings[timesInOrder[i]])
+		weight = weight / 2
 	end
 	#info[:weighted_current_kwh] = info[:weighted_current_kwh] / weighting_added_fat
 	@building.meters.each do |meter|
