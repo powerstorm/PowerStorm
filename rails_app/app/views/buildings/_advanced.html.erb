@@ -4,7 +4,8 @@
 <%= javascript_include_tag "advanced_building.js" %>
 
 <script language="javascript">
-	google.load("visualization", "1", {packages:["corechart"]});
+	//google.load("visualization", "1", {packages:["corechart"]});
+	google.load('visualization', '1', {'packages':['annotatedtimeline']});
     google.setOnLoadCallback(draw_chart);
 		
 	window.onresize = function(event) {
@@ -16,7 +17,7 @@
 
 <div class="wrapper">
 	<div class="chart_wrapper">
-		<div id="advanced_chart"></div>
+		<div id="advanced_chart" style="width:700; height:250"></div>
 	</div>
 	<div id="tabs">
 		<!-- Tab Button Titles -->
