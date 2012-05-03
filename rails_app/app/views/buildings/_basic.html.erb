@@ -37,7 +37,10 @@
 		to_date = (new Date()).sqlSafeStr();
 		
 		jQuery.post('/ajax_update', {building: abr, type: "Hour", to: to_date, from: from_date}, function(response_data) {
-			var rd = eval(response_data).result;
+			var rd = eval(response_data).power_usages;
+			//var rd = eval(response_data);
+			//date_times = rd.datetimes;
+			//powers = rd.powers;
 			console.log(rd);
 			var data = new google.visualization.DataTable();
 			data.addColumn('string', 'Hour');
