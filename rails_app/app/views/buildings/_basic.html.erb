@@ -132,12 +132,13 @@
 	}
 	
 	function draw_barchart() {
-		jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
+	// ajax update #2	
+	jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
 			var d = eval(data);
 			console.log(d);
 			
       // variables returned from function
-      var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
+			var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
 			
 			var data_range = watts( Math.ceil(d.max), t_interval) / 1000;     // energy bar in units of kilowatts
 			var quadrant = watts( Math.ceil(data_range / 4.0), t_interval);
@@ -216,6 +217,8 @@
 	window.onload = function () {
 	  var a = location.href.split('/');
 	  var abr = a[a.length - 1];
+	  jQuery.post('/ajax_update', {building: abr, type: "load"}, function(data) {
+	  console.log(data);
 	  update_info();
 	  
 	  jQuery('#center_column_slider').anythingSlider({
@@ -240,7 +243,8 @@
 	    delay           : 30000,    // how long between automatic slide advance
 	    
 	  });
-	  
+	  	  //AJAX UPDATE #1
+
 	  
 	  /*jQuery('#left_column_slider').anythingSlider({
 	    // Appearance
@@ -264,9 +268,7 @@
 	    delay           : 30000,    // how long between automatic slide advance
 	    
 	  });*/
-	  
-	  jQuery.post('/ajax_update', {building: abr, type: "load"}, function(data) {
-		  console.log(data);
+
 		  
 		  // reload the page every hour or so to try and avoid Whitworth's stupid safe connect redirect stuff
 		  //beatSafeConnectReauth();

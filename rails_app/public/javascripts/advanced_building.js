@@ -74,17 +74,17 @@ function draw_chart() {
 		if (tab_index != 0) {
 			var i = tab_index - 1;
 			
-			$j.post('/ajax_update', {building: abr, type: 'other'/*, from: from_date, to: to_date*/}, function(response_data) {
+			$JQuery.post('/ajax_update', {building: abr, type: 'todays_usage'/*, from: from_date, to: to_date*/}, function(response_data) {
 				var d = eval(response_data);
 				var l = tag_lookup[i].toLowerCase();
 				var ll = usage_lookup[i];
 				console.log(d);
 				
 				$j('#' + l + '_current_usage').html(d.current);
-				$j('#' + l + '_usage').html(roundNumber(d[ll], 2));
-				$j('#' + l + '_use_sqft').html(roundNumber(d[ll] / d.sqft, 4));
-				$j('#' + l + '_use_occupant').html(roundNumber(d[ll] / d.occupants, 2));
-				$j('#' + l + '_green_house').html(roundNumber(0.00068956 * d[ll], 2)); // emission factor: 6.8956 x 10^(-4) metric tons CO2 / kWh
+				$j('#' + l + '_usage').html(roundNumber(d.usage, 2));
+				$j('#' + l + '_use_sqft').html(roundNumber(d.usage / d.sqft, 4));
+				$j('#' + l + '_use_occupant').html(roundNumber(d.usage / d.occupants, 2));
+				$j('#' + l + '_green_house').html(roundNumber(0.00068956 * d.usage, 2)); // emission factor: 6.8956 x 10^(-4) metric tons CO2 / kWh
 			});
 		}
 	}
@@ -97,7 +97,7 @@ window.onload = function() {
 			draw_chart();
 			clearInterval(refresher);
 			//refresher = setInterval(function() {
-				reload_todays_usage();
+			reload_todays_usage();
 			//}, 10000);
 		}
 	});

@@ -28,6 +28,8 @@ PowerStorm::Application.routes.draw do
   
   controller :buildings do
     post 'ajax_update' => :ajax_update
+	post 'ajax_basic_update' => :ajax_basic_update
+	post 'ajax_update_buildings' => :ajax_update_buildings
   end
   
   controller :buildings do
