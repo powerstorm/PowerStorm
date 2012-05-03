@@ -27,14 +27,15 @@ Date.strToDate = function(date_string){
 	var new_date = new Date();
 	
 	//Goal is to convert the date_string into the new_date and return it.
-	
+	date_string = date_string.replace("T", " ");
+	date_string = date_string.replace("Z", "");
+	//Lets split up the string by ":"
 	//Replace all the spaces using colons
 	date_string = date_string.replace(/\ /g, ":");
 	
 	//Replace all the dashes using colons
 	date_string = date_string.replace(/\-/g, ":");
 	
-	//Lets split up the string by ":"
 	var date_attributes = date_string.split(":");
 	
 	//Sets the year

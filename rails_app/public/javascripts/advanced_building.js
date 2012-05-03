@@ -33,7 +33,9 @@ function draw_chart() {
 			}
 			
 			jQuery.post('/ajax_update', {building: abr, type: update_types[tab_index - 1], from: from_date, to: to_date}, function(response_data) {
-				var rd = eval(response_data).power_usages;
+				rd = eval(response_data);
+				var power_usages = rd.power_usages;
+				var date_times = rd.date_times;
 				var data = new google.visualization.DataTable();
 				data.addColumn('date', 'Date');
 				data.addColumn('number', 'Power Usage (KWh)');
@@ -47,7 +49,7 @@ function draw_chart() {
 				        ]);*/
 
 				//Label the graph using the data points stored in rd (an array of power usage readings)
-				label_graph(data, graph_type, rd, from_date, to_date);
+				label_graph(data, graph_type, power_usages,date_times);
 
 				//Create the chart, place it in the advanced_chart div located on the building view
 				var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('advanced_chart'));
@@ -59,25 +61,26 @@ function draw_chart() {
 	}
 	
 	//This function will label the different graph's X axis, as well as naming the Title of the graph
-	function label_graph(data, graph_type, rd, from_date, to_date){
+	function label_graph(data, graph_type, power_usages, date_times){
 	
 		//Since there could be many data points, we may have to find a percentage distance to label from
 		//Find the length of rd to find how far labels should be placed.
-		
+		//For each data point, add it to the graph, separated by an hour
+			var i = 0;
+			//var new_from_date = Date.strToDate(date_times.last)
+			for(i = 0; i < date_times.length ;i++){
+				
+				//data.addRow([(Date.strToDate(from_date)).changeTime('Hours', i), rd[i]]);
+				data.addRow([ Date.strToDate(date_times[i]), power_usages[i]]);
+				console.log(date_times[i]);
+			//add an hour each time through.
+				//new_from_date.changeTime('Hours', 1);
+			}
+			
 		if(graph_type == "Hours"){
 			//grab the hour of the beginning date
 			//var beginning_hour = from_date.getHours();
 
-			//For each data point, add it to the graph, separated by an hour
-			//var i = 0;
-			var new_from_date = Date.strToDate(from_date)
-			for(i = 0; i < 24 ;i++){
-				
-				//data.addRow([(Date.strToDate(from_date)).changeTime('Hours', i), rd[i]]);
-				data.addRow([new Date(new_from_date.getFullYear(), new_from_date.getMonth(), new_from_date.getDate(), new_from_date.getHours(), new_from_date.getMinutes(), new_from_date.getSeconds(), new_from_date.getMilliseconds()), rd[i]]);
-				//add an hour each time through.
-				new_from_date.changeTime('Hours', 1);
-			}
 			
 		}else if(graph_type == "Month"){
 
@@ -94,7 +97,7 @@ function draw_chart() {
 		if (tab_index != 0) {
 			var i = tab_index - 1;
 			
-			$j.post('/ajax_update', {building: abr, type: 'other'/*, from: from_date, to: to_date*/}, function(response_data) {
+			$j.post('/ajax_update', {building: abr, type: 'todays_usage'/*, from: from_date, to: to_date*/}, function(response_data) {
 				var d = eval(response_data);
 				var l = tag_lookup[i].toLowerCase();
 				var ll = usage_lookup[i];
