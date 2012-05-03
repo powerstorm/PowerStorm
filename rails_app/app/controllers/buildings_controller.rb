@@ -96,7 +96,13 @@ class BuildingsController < ApplicationController
   
   #This function calls the Routines in the MySQL database
   def send_chart info, period, building_id, from_date, to_date
-	  info[:result] = Building.connection.execute("CALL powerstorm_data.chartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');").to_a.transpose.first.collect { |i| (i * 100).to_i / 100.0 }
+	  queryResult = Building.connection.execute("CALL powerstorm_data.advancedChartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');")
+	  #.to_a.transpose.first.collect { |i| (i * 100).to_i / 100.0 }
+	  queryResult.each do |tuple|
+		info[:power_usages].push tuple[0]
+		info[:date_times].push tuple[1]
+	  end
+	  info
   end
   
   def send_response info
@@ -254,7 +260,7 @@ end
 			when "todays_usage" then update_today params
 		else  
 			@building = Building.where(:abbreviation => params[:building]).first
-		    info = {:min => 0, :max => 0, :real_current_kwh => 0, :hourly => 0, :daily => 0, :monthly => 0, :yearly => 0, :sqft => 0, :occupants => 0, :readings_time_interval => 0, :feb_sum => 0, :weighted_current_kwh => 0}
+		    info = {:date_times => [], :power_usages => []}
 			send_chart(info, params[:type], @building.id, params[:from], params[:to])
 			send_response info
 		end

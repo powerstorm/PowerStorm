@@ -33,7 +33,7 @@ function draw_chart() {
 			}
 			
 			jQuery.post('/ajax_update', {building: abr, type: update_types[tab_index - 1], from: from_date, to: to_date}, function(response_data) {
-				var rd = eval(response_data).result;
+				var rd = eval(response_data).power_usages;
 				var data = new google.visualization.DataTable();
 				data.addColumn('string', 'Hour');
 				data.addColumn('number', 'KWh');
