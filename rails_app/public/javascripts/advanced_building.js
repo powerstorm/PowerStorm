@@ -111,6 +111,7 @@ function draw_chart() {
 				$j('#' + l + '_use_sqft').html(roundNumber(d.usage / d.sqft, 4));
 				$j('#' + l + '_use_occupant').html(roundNumber(d.usage / d.occupants, 2));
 				$j('#' + l + '_green_house').html(roundNumber(0.00068956 * d.usage, 2)); // emission factor: 6.8956 x 10^(-4) metric tons CO2 / kWh
+                $j('#building_name').html(d.name);
 			});
 		}
 	}

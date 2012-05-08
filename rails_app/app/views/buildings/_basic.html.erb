@@ -139,8 +139,9 @@
 	jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
 			var d = eval(data);
 			console.log(d);
-			
+
       // variables returned from function
+            var building_name = d.name;
 			var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
 			
 			var data_range = watts( Math.ceil(d.max), t_interval) / 1000;     // energy bar in units of kilowatts
@@ -188,6 +189,7 @@
 			
 			update_equiv_values( weighted_current_watts, weighted_current_kwh, t_interval, cost_per_kwh );
 
+            jQuery('#building_name').html(building_name);
 		});
 	}
 
@@ -243,7 +245,7 @@
 	    autoPlay        : true,     // automatically start the slide show
 	    
 	    // Times
-	    delay           : 30000,    // how long between automatic slide advance
+	    delay           : 10000    // how long between automatic slide advance
 	    
 	  });
 	  	  //AJAX UPDATE #1
@@ -282,6 +284,10 @@
     </script>
 
 <div class="colmask threecol">
+    <div class="building_info">
+        <span id="building_name"></span>
+        <a id="view_toggle" href="/change_view_mode/advanced">Advanced View</a>
+    </div>
 	<div class="colmid">
 		<div class="colleft">
 			<div class="col1">
@@ -303,7 +309,7 @@
               #center_column_slider div:before {
                 content: '';
                 display: inline-block;
-                height: 100%; 
+                height: 100%;
                 vertical-align: middle;
 
               }
