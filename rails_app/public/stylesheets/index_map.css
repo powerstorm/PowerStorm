@@ -74,3 +74,8 @@
   width: 770px;
   border-right:1px solid gray;
 }
+
+.info {
+    border-top: 1px solid gray;
+    margin-top: 50px;
+}
