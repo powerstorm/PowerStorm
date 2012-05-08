@@ -98,9 +98,10 @@ class BuildingsController < ApplicationController
   def send_chart info, period, building_id, from_date, to_date
 	  queryResult = Building.connection.execute("CALL powerstorm_data.advancedChartBy#{period}(#{building_id}, '#{from_date}', '#{to_date}');")
 	  #.to_a.transpose.first.collect { |i| (i * 100).to_i / 100.0 }
+	  data = Hash.new
 	  queryResult.each do |tuple|
-		info[:power_usages].push tuple[0]
 		info[:date_times].push tuple[1]
+		info[:power_usages].push tuple[0]
 	  end
 	  info
   end

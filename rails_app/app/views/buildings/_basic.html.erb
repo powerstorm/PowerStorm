@@ -144,7 +144,7 @@
 			var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
 			
 			var data_range = watts( Math.ceil(d.max), t_interval) / 1000;     // energy bar in units of kilowatts
-			var quadrant = watts( Math.ceil(data_range / 4.0), t_interval);
+			//var quadrant = watts( Math.ceil(data_range / 4.0), t_interval);
 			var bar_color = 0;
 			var real_current_watts = watts( d.real_current_kwh, t_interval);
 			var weighted_current_watts = watts( d.weighted_current_kwh, t_interval );
@@ -174,7 +174,7 @@
 			var chart = new google.visualization.BarChart(document.getElementById('chart'));
 			chart.draw(data, {title: 'Current Electricity Usage',
 							  colors: [color_rating],		// rgb = a << 24 | r << 16 | g << 8 | b
-							  hAxis: {maxValue: data_range, minValue: d.min},
+							  hAxis: {maxValue: data_range, minValue: 0},
 							  legend: 'none',
 							  /*backgroundColor: {stroke:'gray', strokeWidth:5}*/});
 							  

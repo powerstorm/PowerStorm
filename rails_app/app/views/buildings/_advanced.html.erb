@@ -4,8 +4,8 @@
 <%= javascript_include_tag "advanced_building.js" %>
 
 <script language="javascript">
-	//google.load("visualization", "1", {packages:["corechart"]});
-	google.load('visualization', '1', {'packages':['annotatedtimeline']});
+	google.load("visualization", "1", {packages:["corechart"]});
+	//google.load('visualization', '1', {'packages':['annotatedtimeline']});
     google.setOnLoadCallback(draw_chart);
 		
 	window.onresize = function(event) {

@@ -37,7 +37,8 @@ function draw_chart() {
 				var power_usages = rd.power_usages;
 				var date_times = rd.date_times;
 				var data = new google.visualization.DataTable();
-				data.addColumn('date', 'Date');
+				
+				data.addColumn('datetime', 'Date');
 				data.addColumn('number', 'Power Usage (KWh)');
 				       /* data.addRows([
 				          [new Date(2008, 1 ,1), 30000, undefined, undefined, 40645, undefined, undefined],
@@ -49,13 +50,14 @@ function draw_chart() {
 				        ]);*/
 
 				//Label the graph using the data points stored in rd (an array of power usage readings)
+				
 				label_graph(data, graph_type, power_usages,date_times);
-
+				data.sort([{column: 0}]);
 				//Create the chart, place it in the advanced_chart div located on the building view
-				var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('advanced_chart'));
+				var chart = new google.visualization.LineChart(document.getElementById('advanced_chart'));
 				
 				//Draw the chart using the data, we won't use annotations
-				chart.draw(data, {displayAnnotations: false});						
+				chart.draw(data,[]);// {displayAnnotations: false});						
 			});
 		}
 	}
@@ -72,6 +74,7 @@ function draw_chart() {
 				
 				//data.addRow([(Date.strToDate(from_date)).changeTime('Hours', i), rd[i]]);
 				data.addRow([ Date.strToDate(date_times[i]), power_usages[i]]);
+			
 				console.log(date_times[i]);
 			//add an hour each time through.
 				//new_from_date.changeTime('Hours', 1);
