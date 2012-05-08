@@ -24,7 +24,8 @@ Date.strToDate = function(date_string){
 	//date_string looks like:  "2012-5-2 18:53:56"
 
 	//Date object looks like:  "Date { Wed May 02 2012 18:53:56 GMT-0700 (PDT) }"
-	var new_date = new Date();
+	
+	//var new_date = new Date();
 	
 	//Goal is to convert the date_string into the new_date and return it.
 	date_string = date_string.replace("T", " ");
@@ -38,23 +39,30 @@ Date.strToDate = function(date_string){
 	
 	var date_attributes = date_string.split(":");
 	
-	//Sets the year
-	new_date.setFullYear(parseInt(date_attributes[0]));
+	year = parseInt(date_attributes[0],10)
+	month = parseInt(date_attributes[1],10) - 1
+	date = parseInt(date_attributes[2],10)
+	hours = parseInt(date_attributes[3],10)
+	minutes = parseInt(date_attributes[4],10)
+	seconds = parseInt(date_attributes[5],10)
+	new_date = new Date(year,month,date,hours,minutes,seconds)
+	// //Sets the year
+	// new_date.setFullYear(parseInt(date_attributes[0]));
 	
-	//Sets the month
-	new_date.setMonth(parseInt(date_attributes[1]-1));
+	// //Sets the month
+	// new_date.setMonth(parseInt(date_attributes[1]-1));
 	
-	//Sets the day of the month
-	new_date.setDate(parseInt(date_attributes[2]));
+	// //Sets the day of the month
+	// new_date.setDate(parseInt(date_attributes[2]));
 	
-	//Sets the hour
-	new_date.setHours(parseInt(date_attributes[3]));
+	// //Sets the hour
+	// new_date.setHours(parseInt(date_attributes[3]));
 	
-	//Sets minutes 
-	new_date.setMinutes(parseInt(date_attributes[4]));
+	// //Sets minutes 
+	// new_date.setMinutes(parseInt(date_attributes[4]));
 	
-	//Sets seconds
-	new_date.setSeconds(parseInt(date_attributes[5]));
+	// //Sets seconds
+	// new_date.setSeconds(parseInt(date_attributes[5]));
 	
 	return new_date;	
 }
