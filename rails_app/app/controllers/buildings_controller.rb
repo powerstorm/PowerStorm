@@ -170,6 +170,7 @@ end
 	#info[:occupants] = @building.capacity
 	
 	info = {:max => 0, :real_current_kwh => 0, :readings_time_interval => 0, :feb_sum => 0, :weighted_current_kwh => 0}
+  info[:name] = @building.building_name
 	
 	#------------------
 	# time variables
@@ -247,6 +248,7 @@ end
 	usage_hash = get_usage(@building, (current_reading_time - 1.day), current_reading_time)
 	info[:usage] = usage_hash.values.sum
 	info[:current] = usage_hash[usage_hash.keys.max]
+  info[:name] = @building.building_name
 	puts("info is: #{info.inspect}")
 	send_response info 
   end

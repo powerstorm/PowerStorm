@@ -23,6 +23,24 @@ p.units { font-size: 1em;
 
 h4 { color:grey; }
 
+/*--------------------------------------------------
+    Building name and view toggle
+--------------------------------------------------*/
+
+.building_info {
+    padding-top: 1%;
+    padding-bottom: 1%;
+    text-align: center;
+}
+#building_name {
+    font-weight: 900;
+    font-size: 30px;
+}
+
+#view_toggle {
+    font-size: 15px;
+}
+
 
 /*--------------------------------------------------
 	Layout Settings
@@ -76,12 +94,12 @@ header { max-width:100%;
 /* 3 Column settings */
 .threecol {
 	background:/*#eee*/ whitesmoke ;		/* right column background colour */
-	height: 77%;								/* controls the height of the three columns */
+	height: 80%;								/* controls the height of the three columns */
 	overflow-y:hidden;
 }
 .threecol .colmid {
 	right:25%;			/* width of the right column */
-	background:#fff;		/* center column background colour */
+	background:whitesmoke;		/* center column background colour */
 	height: 100%;
 }
 .threecol .colleft {
@@ -128,10 +146,10 @@ header { max-width:100%;
 
 #chart {
 	position:absolute !important;
-	top:82%;
+	top:85%;
 	/*clear:both; */
 	/*float:left; */
-	height: 15%;
+	height: 12%;
 	width:99%;
 	/*border-top:1px solid #000; */
 	margin-top: 1%;
