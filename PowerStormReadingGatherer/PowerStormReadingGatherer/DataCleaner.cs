@@ -3,6 +3,7 @@ using System.Data;
 using MySql.Data.MySqlClient;
 using System.Net.Mail;
 using System.Collections.Generic;
+using System.Net;
 
 namespace PowerStormReadingGatherer
 {
@@ -41,7 +42,7 @@ namespace PowerStormReadingGatherer
 				//THEN FOR THOSE IT FINDS ALL THE ALARMED ONES
                 int meterId = rowMeterId[i];//SEQUENCE = ID ?
                 DateTime date = rowDate[i];
-                MySqlCommand command2 = new MySqlCommand(@"SELECT id FROM electricity_readings 
+                MySqlCommand command2 = new MySqlCommand(@"SELECT id, date_time, meter_id, power FROM electricity_readings 
 WHERE power > ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT 
 FROM electricity_readings WHERE meter_id = @meter 
 AND date_time BETWEEN @from AND  @to 
@@ -60,20 +61,29 @@ AND  meter_id = @meter", dbPowerstorm);
 				MySqlDataReader reader = command2.ExecuteReader();
 				List<int> theIds = new List<int>();
 				
+				//stores a description of all the readings marked as alarmed
+				List<string> description = new List<string>();
+				
 				while (reader.Read())
 				{
 					theIds.Add(Convert.ToInt32(reader[0].ToString()));
+					description.Add("Date: " + reader[1].ToString() + " Meter Id: " + reader[2].ToString() + " Power: " + reader[3].ToString());
 				}
 				reader.Close();
 				MySqlCommand command3 = new MySqlCommand("",dbPowerstorm);
 				command3.Parameters.Add(@"@theId", MySqlDbType.Int32);
                 //THEN IT NOTES THEM AS ALARMED
-				foreach (int theId in theIds)
+				//foreach (int theId in theIds)
+				for (int k = 0; k < theIds.Count; k++)
 				{
 					command3.CommandText=@"UPDATE electricity_readings SET validity = 'ALARMED' WHERE id = @theId";
-					command3.Parameters["@theId"].Value = theId;
+					command3.Parameters["@theId"].Value = theIds[k];
 
-					command3.ExecuteNonQuery();   
+					command3.ExecuteNonQuery();  
+					
+					//sends emai notifications for each 
+					EmailNotification(description[k]);
+					
 				}
 				
 							
@@ -214,47 +224,31 @@ AND  meter_id = @meter";
             }
            
         }
-		/// <summary>
-		/// Cleans errors in the data
-		/// </summary>
-		private void ErrorSanitizer()
-		{
-			//find each record marked as an outlier, and run linear regression to fix the outlier
-			
-			//call ErrorFrequency for each error
-			
-			//string validation_state
-			//unmarked ""
-			//corrected
-			//alarmed
-			//acceptable
-			
-			//don't display graph if alarmed or ""
-			
-			//rails server
-			//localhost:3000
-			
-		}
-		
-		/// <summary>
-		/// Updates the error count
-		/// </summary>
-		private void ErrorFrequency()
-		{
-			numberOfErrors++;
-		}
-		
+
 		/// <summary>
 		/// Emails the notification that errors have occurred and been cleaned.
 		/// </summary>
-		private void EmailNotification()
+		private void EmailNotification(string msg)
 		{
-			MailMessage message = new MailMessage("whitworthpowerstorm@gmail.com", "whitworthpowerstorm@gmail.com", "Meter error", "Outliers found in ___");
-			SmtpClient client = new SmtpClient("smtp.gmail.com");
-			client.UseDefaultCredentials = true;
 			try
 			{
-				client.Send(message);
+				MailMessage mail = new MailMessage();
+				mail.From = new MailAddress("whitworthpowerstorm@gmail.com");
+				SmtpClient smtp = new SmtpClient();
+				smtp.Port = 587;
+				smtp.EnableSsl = true;
+				smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+				smtp.UseDefaultCredentials = false;
+				smtp.Credentials = new NetworkCredential(mail.From.ToString(), "p0werst0rm");
+				smtp.Host = "smtp.gmail.com";
+				
+				mail.To.Add(new MailAddress("whitworthpowerstorm@gmail.com"));
+				mail.IsBodyHtml = true;
+				//string st = "An outlier was detected";
+				mail.Body = msg;
+				mail.Subject = "Powerstorm Alert";
+				smtp.Send(mail);
+				            
 			}
 			catch (Exception ex)
 			{
