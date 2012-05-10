@@ -12,7 +12,6 @@ namespace PowerStormReadingGatherer
 	/// </summary>
 	public class DataCleaner
 	{
-		private int numberOfErrors = 0;
 		private MySqlConnection dbPowerstorm; 
 		public DataCleaner (MySqlConnection dbPower)
 		{
@@ -23,7 +22,7 @@ namespace PowerStormReadingGatherer
 		public void CleanData()
         {
             //BEGINS BY GRABBING ALL UNMARKED VALDITIY ROWS
-            MySqlCommand command = new MySqlCommand("SELECT * FROM powerstorm_data.electricity_readings WHERE validity IS NULL OR validity = ''",dbPowerstorm); 
+            MySqlCommand command = new MySqlCommand("SELECT * FROM powerstorm_data.electricity_readings WHERE validity IS NULL OR validity = '';",dbPowerstorm); 
             MySqlDataReader read = command.ExecuteReader();
 			
    

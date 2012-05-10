@@ -14,6 +14,15 @@ using MySql.Data.MySqlClient;
 
 namespace MonoTest
 {
+	/// <summary>
+	/// Program. Runs the ReadingGatherer.
+	/// </summary>
+	/// <exception cref='Exception'>
+	/// Represents errors that occur during application execution.
+	/// </exception>
+	/// <exception cref='FileNotFoundException'>
+	/// Is thrown when a file path argument specifies a file that does not exist.
+	/// </exception>
     class Program
     {
 		const int METER_COUNT = 4;
@@ -28,25 +37,30 @@ namespace MonoTest
 		MySqlConnection localhost;
 		
 		//stores all of the dorm information
-		public List<dormInfo> dormList;
+		public List<DormInfo> dormList;
 		
-		// Initializes the program and begins periodically checking for new readings
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MonoTest.Program"/> class.
+		/// Begins periodically checking for new readings
+		/// </summary>
         Program()
         {
 			//Read from the file which persistantly stores the time of last update
             //timeOfLastUpdate = DateTime.Parse(File.ReadAllText(@"myFile.txt"));
 			
 			//Reads in the "lastDormReading.csv"
-			readCSV();
+			ReadCSV();
 			
 			//Get windows login credentials for authenticating with SQL server
 			PromptForAuthentication();
 		
 			//Begin checking to see if updates are necessary every five minutes
-			while(true) {
+			while(true) 
+			{
 				
 				FetchReadings();
-				saveCSV();
+				SaveCSV();
 			
 				//Save all the CSV files after we query each of the dorms
 				//Console.WriteLine ("Saving CSV File!");
@@ -54,7 +68,25 @@ namespace MonoTest
 				Thread.Sleep(1000 * 60 * 5);
 			}
         }
-		// Returns a SQL Query string that will retrieve each reading from the given meter within the given timeframe
+		
+		/// <summary>
+		/// Returns a SQL Query string that will retrieve each reading from the given meter within the given timeframe
+		/// </summary>
+		/// <returns>
+		/// The envision readings.
+		/// </returns>
+		/// <param name='meterID'>
+		/// Meter ID.
+		/// </param>
+		/// <param name='maxHoursToRetrieve'>
+		/// Max hours to retrieve.
+		/// </param>
+		/// <param name='from'>
+		/// Specifies the date to read from in the database.
+		/// </param>
+		/// <param name='until'>
+		/// Specifies the date to read until in the database
+		/// </param>
 		String SqlGetEnvisionReadings(int meterID, int maxHoursToRetrieve, DateTime from, DateTime until)
 		{
 		    String q = @"SELECT TOP " + maxHoursToRetrieve + " * FROM (";
@@ -100,40 +132,81 @@ namespace MonoTest
 //		    return q;
 //		}
 		
-		//Newest query, that returns all of the newest readings since the last read "Index"
-		//Takes in the trendlog_id (which table) and the index_from (last index read)
-		String SqlGetEnvisionTrendlogReadings(string trendlog_id, int index_from){
+
+		/// <summary>
+		/// Newest query, that returns all of the newest readings since the last read "Index"
+		/// </summary>
+		/// <returns>
+		/// The get envision trendlog readings.
+		/// </returns>
+		/// <param name='trendlog_id'>
+		/// Which table to read from
+		/// </param>
+		/// <param name='index_from'>
+		/// Last index read
+		/// </param>
+		String SqlGetEnvisionTrendlogReadings(string trendlog_id, int index_from)
+		{
 			//We only want readings of type 2 (since type 1 will have a different reading value)
-			String q = @"SELECT * FROM " + trendlog_id /*tblELHC_000000000" + meterID */ + " WHERE [Index] > " + index_from.ToString() + " AND [ValueType] = 2";
+			String q = 	@"SELECT * FROM " + trendlog_id + 
+						" WHERE [Index] > " + index_from.ToString() + 
+						" AND [ValueType] = 2;";
 			return q;
 		}
-		
-		// Inserts an electricity reading into the powerstorm MySql database with the given attributes
+
+		/// <summary>
+		/// Inserts an electricity reading into the powerstorm MySql database with the given attributes
+		/// </summary>
+		/// <param name='meterId'>
+		/// Meter identifier.
+		/// </param>
+		/// <param name='timeOfReading'>
+		/// Time of reading.
+		/// </param>
+		/// <param name='reading'>
+		/// Reading.
+		/// </param>
 		void SqlInsertReading(int meterId, DateTime timeOfReading, double reading) {
-			String q = "INSERT INTO electricity_readings (meter_id, date_time, power) VALUES ("
-				+ meterId
-				+ ", CAST('" + timeOfReading.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME), "
-				+ reading + ");";
+			String q = 	"INSERT INTO electricity_readings (meter_id, date_time, power) VALUES ("
+						+ meterId
+						+ ", CAST('" + timeOfReading.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME), "
+						+ reading + ");";
 			
 			new MySqlCommand(q, dbPower).ExecuteNonQuery();
 			
 			Console.WriteLine(meterId + ",   " + timeOfReading + ",   " + reading);
 		}
 		
-		//This is used for testing instead of SqlInsertReadings
-		void SqlInsertlocalhost(int meterId, DateTime timeOfReading, double reading) {
-			String q = "INSERT INTO electricity_readings (meter_id, date_time, power) VALUES ("
-				+ meterId
-				+ ", CAST('" + timeOfReading.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME), "
-				+ reading + ");";
+		/// <summary>
+		/// This is used for testing instead of SqlInsertReadings
+		/// </summary>
+		/// <param name='meterId'>
+		/// Meter identifier.
+		/// </param>
+		/// <param name='timeOfReading'>
+		/// Time of reading.
+		/// </param>
+		/// <param name='reading'>
+		/// Reading.
+		/// </param>
+		void SqlInsertlocalhost(int meterId, DateTime timeOfReading, double reading) 
+		{
+			String q = 	"INSERT INTO electricity_readings (meter_id, date_time, power) VALUES ("
+						+ meterId
+						+ ", CAST('" + timeOfReading.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME), "
+						+ reading + ");";
 			
 			new MySqlCommand(q, localhost).ExecuteNonQuery();
 			
 			Console.WriteLine(meterId + ",   " + timeOfReading + ",   " + reading);
 		}
 		
-		// Prompts the user for windows login credentials for authenticating with SQL server
-		void PromptForAuthentication() {
+		
+		/// <summary>
+		///  Prompts the user for windows login credentials for authenticating with SQL server
+		/// </summary>
+		void PromptForAuthentication() 
+		{
 			bool sentinel = true;
 			
 			while (sentinel)
@@ -152,18 +225,24 @@ namespace MonoTest
                         Password=" + winPass + @";
 						Integrated Security=SSPI;");
 				
-				try {
+				try 
+				{
 					dbEnvision.Open();
 					sentinel = false;
 					dbEnvision.Close();
 				}
-				catch(Exception e){
+				catch(Exception e)
+				{
 					sentinel = true;
 				}
 			}		
 		}
-		// Establishes a connection to the Envision database
-		void ConnectEnvision() {
+		
+		/// <summary>
+		/// Establishes a connection to the Envision database
+		/// </summary>
+		void ConnectEnvision() 
+		{
             dbEnvision = new SqlConnection(@"Server=10.21.40.38\alerton;
                     Database=ENVISION;
 					User ID=Admin\" + winUserId + @";
@@ -171,8 +250,12 @@ namespace MonoTest
 					Integrated Security=SSPI;");
 			dbEnvision.Open();
 		}
-		// Establishes a connection to the Powerstorm database
-		void ConnectPowerStorm() {
+
+		/// <summary>
+		/// Establishes a connection to the Powerstorm database
+		/// </summary>
+		void ConnectPowerStorm() 
+		{
 			dbPower = new MySqlConnection(@"
 					Server=10.15.2.1;
 					Port=5875;
@@ -182,7 +265,11 @@ namespace MonoTest
 			dbPower.Open();
 		}
 		
-		void Connectlocalhost() {
+		/// <summary>
+		/// Establishes a connection to local host for testing
+		/// </summary>
+		void Connectlocalhost() 
+		{
 			localhost = new MySqlConnection(@"
 					Server=localhost;
 					Database=powerstorm_data;
@@ -191,7 +278,9 @@ namespace MonoTest
 			localhost.Open();
 		}
 		
-		// Retrieves each new reading from the Envision database and inserts it into the Powerstorm database
+		/// <summary>
+		/// Retrieves each new reading from the Envision database and inserts it into the Powerstorm database
+		/// </summary>
 		void FetchReadings()
         {
             try
@@ -221,7 +310,8 @@ namespace MonoTest
 				}
 				*/
 				
-				for(int i = 0; i < dormList.Count; i++){
+				for(int i = 0; i < dormList.Count; i++)
+				{
 					//new SqlCommand
 					query = new SqlCommand(SqlGetEnvisionTrendlogReadings(dormList[i].trendLogString, dormList[i].indexFrom), dbEnvision);
 					
@@ -235,7 +325,8 @@ namespace MonoTest
 					int latestPower = 0;
 					
 					//Cycle through all of the new readings
-					while(reader.Read ()){
+					while(reader.Read ())
+					{
 						
 						Console.WriteLine ("Time of sample: " + reader["TimeOfSample"].ToString() + " Meter#: " + (i+1).ToString());
 						// 0 -> Index
@@ -245,14 +336,18 @@ namespace MonoTest
 						// 4 -> SampleValue
 						
 						//Only consider the reading if it was an interval of 5 minutes.
-						if(((DateTime)reader.GetValue(1)).Minute % 5 == 0){
+						if(((DateTime)reader.GetValue(1)).Minute % 5 == 0)
+						{
 							
 							//if, we didn't have a previous reading, store that as the previousPower
-							if(previousPower == 0){
+							if(previousPower == 0)
+							{
 								previousPower = Convert.ToInt32 (reader.GetValue (4));
 								
 							//else, store that as the latestPower 
-							}else{
+							}
+							else
+							{
 								latestPower = Convert.ToInt32 (reader.GetValue (4));
 								
 								//Since we have both readings, lets store the data
@@ -274,18 +369,12 @@ namespace MonoTest
 						}
 					}
 					
-					
 					reader.Close();
 					//condense the readings
 					//insert readings into powerstorm database
 					//SqlInsertReading(i, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
 					//SqlInsertlocalhost(i, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
 				}
-				
-				
-				
-				
-				
 				
 //				// Get Boppel info
 //				
@@ -338,7 +427,6 @@ namespace MonoTest
 //                }
 //				
 //				reader.Close();
-				
 
 				dbPower.Close();
 				//localhost.Close();
@@ -357,39 +445,86 @@ namespace MonoTest
 
         }
 		
-		//add a new dormInfo to the dormList
-		public void addItem(int indexOfCSV, string Name, string trendLogString, int indexFrom)
+		/// <summary>
+		/// add a new dormInfo to the dormList
+		/// </summary>
+		/// <param name='indexOfCSV'>
+		/// Index of the CSV file.
+		/// </param>
+		/// <param name='name'>
+		/// Name of the dorm.
+		/// </param>
+		/// <param name='trendLogString'>
+		/// Trend log string.
+		/// </param>
+		/// <param name='indexFrom'>
+		/// </param>
+		public void AddItem(int indexOfCSV, string name, string trendLogString, int indexFrom)
     	{
-            dormList.Add(new dormInfo(indexOfCSV, Name, trendLogString, indexFrom));
+            dormList.Add(new DormInfo(indexOfCSV, name, trendLogString, indexFrom));
     	}
 		
-		public class dormInfo{
+		/// <summary>
+		/// Dorm info class. Stores information about the dorm to be stored in CSV.
+		/// </summary>
+		public class DormInfo
+		{
 			
 			public int indexOfCSV;
-			public string Name;
+			public string name;
 			public string trendLogString;
 			public int indexFrom;
 			
-			public dormInfo(int indexOfCSV, string Name, string trendLogString, int indexFrom){
+			/// <summary>
+			/// Initializes a new instance of the <see cref="MonoTest.Program.DormInfo"/> class.
+			/// </summary>
+			/// <param name='indexOfCSV'>
+			/// Index of CSV.
+			/// </param>
+			/// <param name='name'>
+			/// Name.
+			/// </param>
+			/// <param name='trendLogString'>
+			/// Trend log string.
+			/// </param>
+			/// <param name='indexFrom'>
+			/// Index from.
+			/// </param>
+			public DormInfo(int indexOfCSV, string name, string trendLogString, int indexFrom)
+			{
 				this.indexOfCSV = indexOfCSV;
-				this.Name = Name;
+				this.name = name;
 				this.trendLogString = trendLogString;
 				this.indexFrom = indexFrom;
 			}
 			
-			//This will save the newly updated dormInfo to the "lastDormReading.csv"
-			public void saveData(){
+			
+			/// <summary>
+			/// This will save the newly updated dormInfo to the "lastDormReading.csv"
+			/// </summary>
+			public void SaveData()
+			{
 				using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"lastDormReading.csv", true))
             	{
-                	file.WriteLine(Name + "," + trendLogString + "," + indexFrom.ToString());
+                	file.WriteLine(name + "," + trendLogString + "," + indexFrom.ToString());
             	}  
 			}
 			
 		}
 		
-		public void readCSV(){
+		/// <summary>
+		/// Reads the CSV file.
+		/// </summary>
+		/// <exception cref='Exception'>
+		/// Represents errors that occur during application execution.
+		/// </exception>
+		/// <exception cref='FileNotFoundException'>
+		/// Is thrown when a file path argument specifies a file that does not exist.
+		/// </exception>
+		public void ReadCSV()
+		{
 			string fileName = "lastDormReading.csv";
-				dormList = new List<dormInfo>();
+				dormList = new List<DormInfo>();
 				
 				if ((fileName != null) && (!fileName.Equals(string.Empty)) && (File.Exists(fileName)))
         		{
@@ -399,24 +534,28 @@ namespace MonoTest
                 		StreamReader reader = new StreamReader(fileName, System.Text.Encoding.ASCII);
                 		string record = reader.ReadLine();
                 		int row_num = 0;
-
-                		while (record != null)  //lets take all rows from the .csv file and store it
+					
+						// take all rows from the .csv file and store it
+                		while (record != null)  
                 		{
-                        	rows.Add(record);     // lets parse the rows and prepare each element for storage
+						// parse the rows and prepare each element for storage
+                        	rows.Add(record);     
                     		record = reader.ReadLine();
                     		row_num++;
                 		}
 
-                		List<string[]> rowObjects = new List<string[]>();
+                	//	List<string[]> rowObjects = new List<string[]>();
 						int indexOfCSV = 0;
 						
                 		foreach (string s in rows)
                 		{
                     		string[] convertedRow = s.Split(new char[] { ',' });
                     		int num_elements = convertedRow.Length;
-                    		if (num_elements == 3)              //only add it if there are 4 elements (in case there is something wrong with the row)
-                    		{
-								addItem (indexOfCSV, convertedRow[0], convertedRow[1], Convert.ToInt32(convertedRow[2]));
+						
+							//only add it if there are 4 elements (in case there is something wrong with the row)
+                    		if (num_elements == 3)              
+							{
+								AddItem (indexOfCSV, convertedRow[0], convertedRow[1], Convert.ToInt32(convertedRow[2]));
                     		}
 							indexOfCSV++;
                 		}
@@ -433,12 +572,17 @@ namespace MonoTest
         		}
 		}
 		
-		public void saveCSV(){
+		/// <summary>
+		/// Saves the CSV file.
+		/// </summary>
+		public void SaveCSV()
+		{
 			string path = @"lastDormReading.csv";
         	try 
         	{
 				//Delete the old file
-				if(File.Exists (path)){
+				if(File.Exists (path))
+				{
             		File.Delete(path);
 				}
 				
@@ -451,8 +595,9 @@ namespace MonoTest
             Console.WriteLine("The process failed: {0}", e.ToString());
         }	
 			//Append all data to the .csv file
-			for(int i = 0; i < dormList.Count; i++){
-				dormList[i].saveData();
+			for(int i = 0; i < dormList.Count; i++)
+			{
+				dormList[i].SaveData();
 			}
 		}
 
