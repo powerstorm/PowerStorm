@@ -56,7 +56,7 @@ namespace PowerStormReadingGatherer
                 DateTime date = rowDate[i];
                 MySqlCommand command2 = new MySqlCommand(@"SELECT id, date_time, meter_id, power " 
 				                                        + "FROM electricity_readings "
-														+ "WHERE power > ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT " 
+														+ "WHERE power > ANY(SELECT (3 * STD(power) + AVG(power) + 2) AS UPPERLIMIT " 
 														+ "FROM electricity_readings WHERE meter_id = @meter "
 														+ "AND date_time BETWEEN @from AND  @to "
 														+ "AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
@@ -107,7 +107,7 @@ namespace PowerStormReadingGatherer
 							
 				//finds all values that are not standard deviations and marks them as acceptable
                 command2.CommandText = @"SELECT id FROM electricity_readings "
-										+"WHERE power <= ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT "
+										+"WHERE power <= ANY(SELECT (3 * STD(power) + AVG(power) + 2) AS UPPERLIMIT "
 										+"FROM electricity_readings WHERE meter_id = @meter "
 										+"AND date_time BETWEEN @from AND  @to "
 										+"AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
