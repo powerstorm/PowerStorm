@@ -13,19 +13,31 @@ namespace PowerStormReadingGatherer
 	public class DataCleaner
 	{
 		private MySqlConnection dbPowerstorm; 
+		
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PowerStormReadingGatherer.DataCleaner"/> class.
+		/// </summary>
+		/// <param name='dbPower'>
+		/// Database connection
+		/// </param>
 		public DataCleaner (MySqlConnection dbPower)
 		{
 			dbPowerstorm = dbPower;
 			
 		}
 		
+		/// <summary>
+		/// Finds outliers in the data, marks them in the database, and fixes outliers
+		/// </summary>
 		public void CleanData()
         {
-            //BEGINS BY GRABBING ALL UNMARKED VALDITIY ROWS
-            MySqlCommand command = new MySqlCommand("SELECT * FROM powerstorm_data.electricity_readings WHERE validity IS NULL OR validity = '';",dbPowerstorm); 
-            MySqlDataReader read = command.ExecuteReader();
+
+			//gets all of the rows with unmarked validity
+            MySqlCommand command = new MySqlCommand("SELECT * FROM powerstorm_data.electricity_readings " + 
+			                                        "WHERE validity IS NULL OR validity = '';", dbPowerstorm); 
 			
-   
+            MySqlDataReader read = command.ExecuteReader();
+			   
 			List<Int32> rowMeterId = new List<Int32>();
 			List<DateTime> rowDate = new List<DateTime>();
 			while (read.Read())
@@ -35,21 +47,23 @@ namespace PowerStormReadingGatherer
 			}
 			
 			read.Close();
-            //foreach (DataRow myRow in schemaTable.Rows)
+		
+			//determines if each unmarked value is an outlier (using 2 standard deviations)
 			for (int i = 0; i < rowMeterId.Count; i++)
             {
-				//THEN FOR THOSE IT FINDS ALL THE ALARMED ONES
-                int meterId = rowMeterId[i];//SEQUENCE = ID ?
+                int meterId = rowMeterId[i];
                 DateTime date = rowDate[i];
-                MySqlCommand command2 = new MySqlCommand(@"SELECT id, date_time, meter_id, power FROM electricity_readings 
-WHERE power > ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT 
-FROM electricity_readings WHERE meter_id = @meter 
-AND date_time BETWEEN @from AND  @to 
-AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) 
-AND date_time BETWEEN @from AND  @to 
-AND (validity = '' OR validity IS NULL)
-AND  meter_id = @meter", dbPowerstorm);
-                command2.Parameters.Add(@"@meter", MySqlDbType.Int32);//CHECK TYPES
+                MySqlCommand command2 = new MySqlCommand(@"SELECT id, date_time, meter_id, power " 
+				                                        + "FROM electricity_readings "
+														+ "WHERE power > ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT " 
+														+ "FROM electricity_readings WHERE meter_id = @meter "
+														+ "AND date_time BETWEEN @from AND  @to "
+														+ "AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
+														+ "AND date_time BETWEEN @from AND  @to "
+														+ "AND (validity = '' OR validity IS NULL) "
+														+ "AND  meter_id = @meter;", dbPowerstorm);
+				
+                command2.Parameters.Add(@"@meter", MySqlDbType.Int32);
                 command2.Parameters.Add(@"@from", MySqlDbType.DateTime);
                 command2.Parameters.Add(@"@to", MySqlDbType.DateTime);
 
@@ -58,6 +72,7 @@ AND  meter_id = @meter", dbPowerstorm);
                 command2.Parameters["@from"].Value = date.AddMinutes(-90);
 				
 				MySqlDataReader reader = command2.ExecuteReader();
+				//keeps track of the ids of the records that are outliers
 				List<int> theIds = new List<int>();
 				
 				//stores a description of all the readings marked as alarmed
@@ -69,45 +84,56 @@ AND  meter_id = @meter", dbPowerstorm);
 					description.Add("Date: " + reader[1].ToString() + " Meter Id: " + reader[2].ToString() + " Power: " + reader[3].ToString());
 				}
 				reader.Close();
+				
 				MySqlCommand command3 = new MySqlCommand("",dbPowerstorm);
 				command3.Parameters.Add(@"@theId", MySqlDbType.Int32);
-                //THEN IT NOTES THEM AS ALARMED
-				//foreach (int theId in theIds)
+				
+                //marks all outliers as alarmed
 				for (int k = 0; k < theIds.Count; k++)
 				{
-					command3.CommandText=@"UPDATE electricity_readings SET validity = 'ALARMED' WHERE id = @theId";
+					command3.CommandText=@"UPDATE electricity_readings SET validity = 'ALARMED' "
+										+"WHERE id = @theId;";
+					
 					command3.Parameters["@theId"].Value = theIds[k];
 
 					command3.ExecuteNonQuery();  
 					
-					//sends emai notifications for each 
+					//sends email notifications for each outlier
 					EmailNotification(description[k]);
 					
 				}
 				
 							
-				//FINDS THE OK ONES
-                command2.CommandText = @"SELECT id FROM electricity_readings 
-WHERE power <= ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT 
-FROM electricity_readings WHERE meter_id = @meter 
-AND date_time BETWEEN @from AND  @to 
-AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) 
-AND date_time BETWEEN @from AND  @to 
-AND (validity = '' OR validity IS NULL)
-AND  meter_id = @meter";
+				//finds all values that are not standard deviations and marks them as acceptable
+                command2.CommandText = @"SELECT id FROM electricity_readings "
+										+"WHERE power <= ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT "
+										+"FROM electricity_readings WHERE meter_id = @meter "
+										+"AND date_time BETWEEN @from AND  @to "
+										+"AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
+										+"AND date_time BETWEEN @from AND  @to "
+										+"AND (validity = '' OR validity IS NULL) "
+										+"AND  meter_id = @meter;";
+				
                 MySqlDataReader reader2 = command2.ExecuteReader();
+				
 				theIds = new List<int>();
+				
+				//keeps track of the list of ids of records that are NOT outliers
 				while (reader2.Read())
 				{
 					theIds.Add(Convert.ToInt32(reader2[0].ToString()));
 				}
+				
 				reader2.Close();
+				
 				MySqlCommand command4 = new MySqlCommand("",dbPowerstorm);
 				command4.Parameters.Add(@"@theId", MySqlDbType.Int32);
+				
 				foreach (int theId in theIds)
 				{
-                    //MARKS THEM AS OK
-					command4.CommandText=@"UPDATE electricity_readings SET validity = 'ACCEPTABLE' WHERE id = @theId";
+                    //mark non-outliers as acceptable
+					command4.CommandText=@"UPDATE electricity_readings SET validity = 'ACCEPTABLE' "
+											+ "WHERE id = @theId;";
 					command4.Parameters["@theId"].Value = theId;
 
 					command4.ExecuteNonQuery();   
@@ -115,14 +141,18 @@ AND  meter_id = @meter";
 
             }
 			 
-			//BEGINS CLEANING THE DATA BY GRABBING ALL ALARMED ONES 
-            
-            MySqlCommand command5 = new MySqlCommand("SELECT * FROM electricity_readings WHERE validity = 'ALARMED'", dbPowerstorm); 
+			//begins cleaning the data
+			
+			//gets all values marked as 'alarmed' in the database
+            MySqlCommand command5 = new MySqlCommand("SELECT * FROM electricity_readings "
+			                                         +"WHERE validity = 'ALARMED'", dbPowerstorm); 
             MySqlDataReader alarmedReader = command5.ExecuteReader();
-
-         //   schemaTable = read.GetSchemaTable();
+			
+			//keeps track of all ids that are alarmed
 			List<int> idList = new List<int>();
+			//keeps track of dates of all alarmed records
 			List<DateTime> dates = new List<DateTime>();
+			//keeps track of the meter id for each alarmed record
 			List<int> meterIds = new List<int>();
 			
 			while(alarmedReader.Read())
@@ -132,15 +162,16 @@ AND  meter_id = @meter";
 				dates.Add(Convert.ToDateTime(alarmedReader[1].ToString()));
 			}
 			
-			//Object[] rows = new Object[alarmedReader.FieldCount];
-    		//int numRows = alarmedReader.GetValues(rows);
 			alarmedReader.Close();
 			
+			//cleans each alarmed value based on linear regression
 			for (int i = 0; i < meterIds.Count; i++)
 			{
 
-                //Previous
-                command5 = new MySqlCommand("SELECT * FROM electricity_readings WHERE date_time < @date AND meter_id = @meter AND validity = 'ACCEPTABLE' ORDER BY date_time DESC LIMIT 0,1", dbPowerstorm);
+                //gets the previous acceptable value
+                command5 = new MySqlCommand("SELECT * FROM electricity_readings "
+				                            +"WHERE date_time < @date AND meter_id = @meter AND validity = 'ACCEPTABLE' "
+				                            +"ORDER BY date_time DESC LIMIT 0,1", dbPowerstorm);
                 command5.Parameters.Add(@"meter", MySqlDbType.Text);
 				command5.Parameters.Add (@"date", MySqlDbType.DateTime);
                 command5.Parameters["@meter"].Value = meterIds[i].ToString();
@@ -153,60 +184,46 @@ AND  meter_id = @meter";
                 int powerPrev = 0;
                 if (alarmedReader.Read())
                 {
-                    //  DataTable data = reader.GetSchemaTable();
-
-                    // DataRow trow = data.Rows[0];
-                    //	Object trow = theRow[0];                         
-                    //   long datePrev = long.Parse(trow[1].ToString());
-                    // int powerPrev = Int32.Parse(trow[4].ToString());
-
-                    //double datePrev = Convert.ToDouble(alarmedReader[1].ToString());
-                    //	string datePrv = alarmedReader[1].ToString();
-                    //	DateTime dtPrev = Convert.ToDateTime(datePrv);
-                    //	double datePrev = Convert.ToDouble(dtPrev);
                     datePrev = DateTime.Parse(alarmedReader[1].ToString()).Ticks;
-                    //    long datePrev = long.Parse(alarmedReader[1].ToString());
                     powerPrev = Int32.Parse(alarmedReader[3].ToString());
                     hadPrev = true;
                 }
 				alarmedReader.Close();
 				
-                //Recent
-                command5 = new MySqlCommand("SELECT * FROM electricity_readings WHERE date_time > @date AND meter_id = @meter AND validity = 'ACCEPTABLE' ORDER BY date_time ASC LIMIT 0,1", dbPowerstorm);
+                //gets the value closest to the alarmed value that is acceptable and most recent
+                command5 = new MySqlCommand("SELECT * FROM electricity_readings "
+				                            +"WHERE date_time > @date AND meter_id = @meter AND validity = 'ACCEPTABLE' "
+				                            +"ORDER BY date_time ASC LIMIT 0,1", dbPowerstorm);
                 command5.Parameters.Add(@"meter", MySqlDbType.Text);
 				command5.Parameters.Add (@"date", MySqlDbType.DateTime);
                 command5.Parameters["@meter"].Value = meterIds[i].ToString();
 				command5.Parameters["@date"].Value = dates[i].ToString();
 
                 alarmedReader = command5.ExecuteReader();
-             //   DataTable data = reader.GetSchemaTable();
-               // DataRow trow = data.Rows[0];
 
                 double dateLast = 0;
                 int powerLast = 0;
                 bool hadLast = false;
                 if (alarmedReader.Read())
                 {
-
-                    //	double dateLast = Convert.ToDouble(alarmedReader[1].ToString());
                     dateLast = DateTime.Parse(alarmedReader[1].ToString()).Ticks;
-                    //	long dateLast = long.Parse(alarmedReader[1].ToString());
+
                     powerLast = Int32.Parse(alarmedReader[3].ToString());
                     hadLast = true;
                 }
-                    alarmedReader.Close();
-               // long dateLast = long.Parse(trow[1].ToString());
-                //int powerLast = Int32.Parse(trow[4].ToString()); ;
+                alarmedReader.Close();
 
-                    if (hadLast && hadPrev)
-                    {
-                        double currentTime = DateTime.Parse(dates[i].ToString()).Ticks;
-                        int id = Int32.Parse(idList[i].ToString());
+                if (hadLast && hadPrev)
+                {
+					//calculate what the value should be based on linear regression
+                    	double currentTime = DateTime.Parse(dates[i].ToString()).Ticks;
+                    	int id = Int32.Parse(idList[i].ToString());
 
                         double newPower = powerPrev + (powerLast - powerPrev) * ((currentTime - datePrev) / (dateLast - datePrev));
-                        //CHECK IT IS CALLED ID next INSERT
-                        //update with newPower
-                        MySqlCommand updateCommand = new MySqlCommand(@"UPDATE electricity_readings SET power = @power, validity = 'CORRECTED' WHERE id = @id", dbPowerstorm);
+
+                        MySqlCommand updateCommand = new MySqlCommand(@"UPDATE electricity_readings "
+					                                              +"SET power = @power, validity = 'CORRECTED' "
+					                                              +"WHERE id = @id", dbPowerstorm);
                         updateCommand.Parameters.Add(@"@power", MySqlDbType.Int32);
                         updateCommand.Parameters.Add(@"@id", MySqlDbType.Int32);
 
@@ -214,25 +231,25 @@ AND  meter_id = @meter";
                         updateCommand.Parameters["@id"].Value = id;
 
                         updateCommand.ExecuteNonQuery();
-                    }
-			 
-			// updateCommand = new MySqlCommand(@"UPDATE electricity_readings SET power = @power, validity = 'CORRECTED' WHERE id = @id", dbPowerstorm);
-			 	//updateCommand = new MySqlCommand(@"UPDATE electricity_readings SET power = @power, validity = 'CORRECTED' WHERE id = @id", dbPowerstorm);
-				//updateCommand.ExecuteNonQuery();
-
+                }
             }
            
         }
 
 		/// <summary>
-		/// Emails the notification that errors have occurred and been cleaned.
+		/// Emails the notification that outliers have been detected.
 		/// </summary>
+		/// <param name='msg'>
+		/// Information to include in the email
+		/// </param>
 		private void EmailNotification(string msg)
 		{
 			try
 			{
 				MailMessage mail = new MailMessage();
 				mail.From = new MailAddress("whitworthpowerstorm@gmail.com");
+				
+				//set up gmail smtp client to send mail
 				SmtpClient smtp = new SmtpClient();
 				smtp.Port = 587;
 				smtp.EnableSsl = true;
@@ -243,7 +260,6 @@ AND  meter_id = @meter";
 				
 				mail.To.Add(new MailAddress("whitworthpowerstorm@gmail.com"));
 				mail.IsBodyHtml = true;
-				//string st = "An outlier was detected";
 				mail.Body = msg;
 				mail.Subject = "Powerstorm Alert";
 				smtp.Send(mail);
