@@ -11,7 +11,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using MySql.Data.MySqlClient;
-
+using PowerStormReadingGatherer;
 namespace MonoTest
 {
 	/// <summary>
@@ -65,7 +65,7 @@ namespace MonoTest
 				//Save all the CSV files after we query each of the dorms
 				//Console.WriteLine ("Saving CSV File!");
 			//	Thread.Sleep (10000);
-				Thread.Sleep(1000 * 60 * 5);
+				Thread.Sleep(Constants.READER_GATHERER_SLEEP);
 			}
         }
 		
@@ -336,23 +336,23 @@ namespace MonoTest
 						// 4 -> SampleValue
 						
 						//Only consider the reading if it was an interval of 5 minutes.
-						if(((DateTime)reader.GetValue(1)).Minute % 5 == 0)
+						if(((DateTime)reader.GetValue(Constants.POWERSTORM_DATABASE_DATETIME)).Minute % 5 == 0)
 						{
 							
 							//if, we didn't have a previous reading, store that as the previousPower
 							if(previousPower == 0)
 							{
-								previousPower = Convert.ToInt32 (reader.GetValue (4));
+								previousPower = Convert.ToInt32 (reader.GetValue (Constants.POWERSTORM_DATABASE_POWER));
 								
 							//else, store that as the latestPower 
 							}
 							else
 							{
-								latestPower = Convert.ToInt32 (reader.GetValue (4));
+								latestPower = Convert.ToInt32 (reader.GetValue (Constants.POWERSTORM_DATABASE_POWER));
 								
 								//Since we have both readings, lets store the data
 								//SqlInsertlocalhost(i+1, (DateTime)reader.GetValue (1), (latestPower-previousPower));
-								SqlInsertReading(i+1, (DateTime)reader.GetValue (1), (latestPower-previousPower));
+								SqlInsertReading(i+1, (DateTime)reader.GetValue (Constants.POWERSTORM_DATABASE_DATETIME), (latestPower-previousPower));
 								
 								Console.WriteLine ("Meter id: " + (i+1).ToString() + " " + reader["TimeOfSample"].ToString() + " " + (latestPower-previousPower).ToString());          
 								
