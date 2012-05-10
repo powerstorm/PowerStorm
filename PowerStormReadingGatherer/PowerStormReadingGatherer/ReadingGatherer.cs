@@ -45,26 +45,21 @@ namespace MonoTest
 		/// Begins periodically checking for new readings
 		/// </summary>
         Program()
-        {
-			//Read from the file which persistantly stores the time of last update
-            //timeOfLastUpdate = DateTime.Parse(File.ReadAllText(@"myFile.txt"));
-			
+        {			
 			//Reads in the "lastDormReading.csv"
 			ReadCSV();
 			
 			//Get windows login credentials for authenticating with SQL server
 			PromptForAuthentication();
-		
+			DataCleaner cleaner = new DataCleaner(dbPower);
 			//Begin checking to see if updates are necessary every five minutes
 			while(true) 
 			{
 				
 				FetchReadings();
 				SaveCSV();
-			
-				//Save all the CSV files after we query each of the dorms
-				//Console.WriteLine ("Saving CSV File!");
-			//	Thread.Sleep (10000);
+				cleaner.CleanData();
+
 				Thread.Sleep(Constants.READER_GATHERER_SLEEP);
 			}
         }
@@ -108,29 +103,6 @@ namespace MonoTest
 		        + " ORDER BY TimeOfReading;";
 		    return q;
 		}
-		
-//		// Returns a SQL Query string that will retrieve each reading from the meters for Warren (2), Mac, and Boppel
-//		String SqlGetEnvisionTrendlogReadings(string trendlog_id, int maxHoursToRetrive, DateTime from, DateTime until)
-//		{
-//			String q = @"SELECT TOP " + maxHoursToRetrive + " * FROM (";
-//		    for (int i = 1; true; ++i)
-//		    {
-//		        q += " (SELECT"
-//		            + " DATEADD(minute, " + (i - 1)*5 + ", TimeOfSample) AS TimeOfReading, QtrHr" + i
-//		            + " AS Reading";
-//		        q += " FROM " + trendlog_id /*tblELHC_000000000" + meterID */ + ")";
-//		
-//		        if (i >= 20) { break; }
-//		
-//		        q += " UNION ";
-//		    }
-//		
-//		    q += ") AS Readings"
-//		        + " WHERE TimeOfReading > CAST('" + from.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME)"
-//		        + " AND TimeOfReading <= CAST('" + until.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME)"
-//		        + " ORDER BY TimeOfReading;";
-//		    return q;
-//		}
 		
 
 		/// <summary>
@@ -211,12 +183,8 @@ namespace MonoTest
 			
 			while (sentinel)
 			{
-				//Console.Write("Username: ");
-				//winUserId = Console.ReadLine();
 				winUserId = "pyoho11";
 				
-				//Console.Write("Password: ");
-				//winPass = Console.ReadLine();
 				winPass = "2Bway2cool";
 				
                 dbEnvision = new SqlConnection(@"Server=10.21.40.38\alerton;
@@ -287,29 +255,10 @@ namespace MonoTest
             {
 				// Establish connections to the required databases
 				ConnectPowerStorm();
-				//Use Connectlocalhost for testing
-				//Connectlocalhost();
+
 				ConnectEnvision();
 				
-				// 'Now' is set to now because we are using current data
-				//now = DateTime.Now;  //.Subtract(new TimeSpan(365, 0, 0, 0));
-				
-				/*
-				// Iterates through each meter index and queries each new reading associated with it
-				for (int i = 1; i <= METER_COUNT; ++i) {
-					// Retrieves each new reading associated with the meter index from the Envision database
-	                query = new SqlCommand(SqlGetEnvisionReadings(i, 1000000000, timeOfLastUpdate, now), dbEnvision);
-	                reader = query.ExecuteReader();
-					
-					// Inserts each new reading into the powerstorm database
-	                while (reader.Read()) {
-						SqlInsertReading(i, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-	                }
-					
-					reader.Close();
-				}
-				*/
-				
+
 				for(int i = 0; i < dormList.Count; i++)
 				{
 					//new SqlCommand
@@ -329,11 +278,6 @@ namespace MonoTest
 					{
 						
 						Console.WriteLine ("Time of sample: " + reader["TimeOfSample"].ToString() + " Meter#: " + (i+1).ToString());
-						// 0 -> Index
-						// 1 -> TimeOfSample
-						// 2 -> Sequence
-						// 3 -> ValueType
-						// 4 -> SampleValue
 						
 						//Only consider the reading if it was an interval of 5 minutes.
 						if(((DateTime)reader.GetValue(Constants.POWERSTORM_DATABASE_DATETIME)).Minute % 5 == 0)
@@ -351,7 +295,6 @@ namespace MonoTest
 								latestPower = Convert.ToInt32 (reader.GetValue (Constants.POWERSTORM_DATABASE_POWER));
 								
 								//Since we have both readings, lets store the data
-								//SqlInsertlocalhost(i+1, (DateTime)reader.GetValue (1), (latestPower-previousPower));
 								SqlInsertReading(i+1, (DateTime)reader.GetValue (Constants.POWERSTORM_DATABASE_DATETIME), (latestPower-previousPower));
 								
 								Console.WriteLine ("Meter id: " + (i+1).ToString() + " " + reader["TimeOfSample"].ToString() + " " + (latestPower-previousPower).ToString());          
@@ -370,73 +313,12 @@ namespace MonoTest
 					}
 					
 					reader.Close();
-					//condense the readings
-					//insert readings into powerstorm database
-					//SqlInsertReading(i, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-					//SqlInsertlocalhost(i, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
 				}
-				
-//				// Get Boppel info
-//				
-//				// Retrieves each new reading associated with the meter index from the Envision database
-//                query = new SqlCommand(SqlGetEnvisionTrendlogReadings("tblTrendlog_0002300_0000000002", 1000000000, timeOfLastUpdate, now), dbEnvision);
-//                reader = query.ExecuteReader();
-//				
-//				// Inserts each new reading into the powerstorm database
-//                while (reader.Read()) {
-//					SqlInsertReading(1, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-//                }
-//				
-//				reader.Close();
-//				
-//				// Get Mac info
-//				
-//				// Retrieves each new reading associated with the meter index from the Envision database
-//                query = new SqlCommand(SqlGetEnvisionTrendlogReadings("tblTrendlog_0006000_0000000000", 1000000000, timeOfLastUpdate, now), dbEnvision);
-//                reader = query.ExecuteReader();
-//				
-//				// Inserts each new reading into the powerstorm database
-//                while (reader.Read()) {
-//					SqlInsertReading(2, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-//                }
-//				
-//				reader.Close();
-//				
-//				// Get Warren 1 info
-//				
-//				// Retrieves each new reading associated with the meter index from the Envision database
-//                query = new SqlCommand(SqlGetEnvisionTrendlogReadings("tblTrendlog_0005000_0000000000", 1000000000, timeOfLastUpdate, now), dbEnvision);
-//                reader = query.ExecuteReader();
-//				
-//				// Inserts each new reading into the powerstorm database
-//                while (reader.Read()) {
-//					SqlInsertReading(3, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-//                }
-//				
-//				reader.Close();
-//				
-//				// Get Warren 2 info
-//				
-//				// Retrieves each new reading associated with the meter index from the Envision database
-//                query = new SqlCommand(SqlGetEnvisionTrendlogReadings("tblTrendlog_0015000_0000000000", 1000000000, timeOfLastUpdate, now), dbEnvision);
-//                reader = query.ExecuteReader();
-//				
-//				// Inserts each new reading into the powerstorm database
-//                while (reader.Read()) {
-//					SqlInsertReading(4, (DateTime)reader.GetValue(0), (double)reader.GetValue(1));
-//                }
-//				
-//				reader.Close();
 
 				dbPower.Close();
-				//localhost.Close();
+
 				dbEnvision.Close(); 
-					
-				//timeOfLastUpdate = now;
-	
-	            //StreamWriter sw = new StreamWriter(@"myFile.txt");
-	            //sw.WriteLine(now.ToString());
-	            //sw.Close();
+
 			}
             catch (Exception e)
             {
@@ -544,7 +426,6 @@ namespace MonoTest
                     		row_num++;
                 		}
 
-                	//	List<string[]> rowObjects = new List<string[]>();
 						int indexOfCSV = 0;
 						
                 		foreach (string s in rows)
