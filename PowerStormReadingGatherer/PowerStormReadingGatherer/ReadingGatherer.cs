@@ -38,7 +38,6 @@ namespace MonoTest
 		
 		//stores all of the dorm information
 		public List<DormInfo> dormList;
-		
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MonoTest.Program"/> class.
@@ -51,59 +50,24 @@ namespace MonoTest
 			
 			//Get windows login credentials for authenticating with SQL server
 			PromptForAuthentication();
+			
 			DataCleaner cleaner = new DataCleaner(dbPower);
+			
 			//Begin checking to see if updates are necessary every five minutes
 			while(true) 
 			{
-				
+				//Fetch newest electricity_readings
 				FetchReadings();
+				
+				//Stores the index of the last electricity_reading we read from.
 				SaveCSV();
+				
 				cleaner.CleanData();
-
+				
+				//Wait for five minutes, before we check for new readings
 				Thread.Sleep(Constants.READER_GATHERER_SLEEP);
 			}
         }
-		
-		/// <summary>
-		/// Returns a SQL Query string that will retrieve each reading from the given meter within the given timeframe
-		/// </summary>
-		/// <returns>
-		/// The envision readings.
-		/// </returns>
-		/// <param name='meterID'>
-		/// Meter ID.
-		/// </param>
-		/// <param name='maxHoursToRetrieve'>
-		/// Max hours to retrieve.
-		/// </param>
-		/// <param name='from'>
-		/// Specifies the date to read from in the database.
-		/// </param>
-		/// <param name='until'>
-		/// Specifies the date to read until in the database
-		/// </param>
-		String SqlGetEnvisionReadings(int meterID, int maxHoursToRetrieve, DateTime from, DateTime until)
-		{
-		    String q = @"SELECT TOP " + maxHoursToRetrieve + " * FROM (";
-		    for (int i = 1; true; ++i)
-		    {
-		        q += " (SELECT"
-		            + " DATEADD(minute, " + (i - 1)*15 + ", time_stamp) AS TimeOfReading, QtrHr" + i
-		            + " AS Reading";
-		        q += " FROM tblELHC_000000000" + meterID + ")";
-		
-		        if (i >= 4) { break; }
-		
-		        q += " UNION ";
-		    }
-		
-		    q += ") AS Readings"
-		        + " WHERE TimeOfReading > CAST('" + from.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME)"
-		        + " AND TimeOfReading <= CAST('" + until.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME)"
-		        + " ORDER BY TimeOfReading;";
-		    return q;
-		}
-		
 
 		/// <summary>
 		/// Newest query, that returns all of the newest readings since the last read "Index"
@@ -150,31 +114,6 @@ namespace MonoTest
 		}
 		
 		/// <summary>
-		/// This is used for testing instead of SqlInsertReadings
-		/// </summary>
-		/// <param name='meterId'>
-		/// Meter identifier.
-		/// </param>
-		/// <param name='timeOfReading'>
-		/// Time of reading.
-		/// </param>
-		/// <param name='reading'>
-		/// Reading.
-		/// </param>
-		void SqlInsertlocalhost(int meterId, DateTime timeOfReading, double reading) 
-		{
-			String q = 	"INSERT INTO electricity_readings (meter_id, date_time, power) VALUES ("
-						+ meterId
-						+ ", CAST('" + timeOfReading.ToString("yyyy-MM-dd HH:mm:ss") + "' AS DATETIME), "
-						+ reading + ");";
-			
-			new MySqlCommand(q, localhost).ExecuteNonQuery();
-			
-			Console.WriteLine(meterId + ",   " + timeOfReading + ",   " + reading);
-		}
-		
-		
-		/// <summary>
 		///  Prompts the user for windows login credentials for authenticating with SQL server
 		/// </summary>
 		void PromptForAuthentication() 
@@ -183,8 +122,8 @@ namespace MonoTest
 			
 			while (sentinel)
 			{
+				//These login details are used to log onto the network
 				winUserId = "pyoho11";
-				
 				winPass = "2Bway2cool";
 				
                 dbEnvision = new SqlConnection(@"Server=10.21.40.38\alerton;
@@ -234,19 +173,6 @@ namespace MonoTest
 		}
 		
 		/// <summary>
-		/// Establishes a connection to local host for testing
-		/// </summary>
-		void Connectlocalhost() 
-		{
-			localhost = new MySqlConnection(@"
-					Server=localhost;
-					Database=powerstorm_data;
-					Uid=root;
-					password=;");
-			localhost.Open();
-		}
-		
-		/// <summary>
 		/// Retrieves each new reading from the Envision database and inserts it into the Powerstorm database
 		/// </summary>
 		void FetchReadings()
@@ -255,16 +181,14 @@ namespace MonoTest
             {
 				// Establish connections to the required databases
 				ConnectPowerStorm();
-
 				ConnectEnvision();
-				
 
 				for(int i = 0; i < dormList.Count; i++)
 				{
-					//new SqlCommand
+					//new SqlCommand to be executed on the Envision database
 					query = new SqlCommand(SqlGetEnvisionTrendlogReadings(dormList[i].trendLogString, dormList[i].indexFrom), dbEnvision);
 					
-					//execute reader
+					//execute reader, so that we can get the newest electricity readings
 					reader = query.ExecuteReader();
 					
 					//stores the power amount from the previous reading (-5 minutes before)
@@ -286,16 +210,16 @@ namespace MonoTest
 							//if, we didn't have a previous reading, store that as the previousPower
 							if(previousPower == 0)
 							{
-								previousPower = Convert.ToInt32 (reader.GetValue (Constants.POWERSTORM_DATABASE_POWER));
+								previousPower = Convert.ToInt32(reader.GetValue(Constants.POWERSTORM_DATABASE_POWER));
 								
 							//else, store that as the latestPower 
 							}
 							else
 							{
-								latestPower = Convert.ToInt32 (reader.GetValue (Constants.POWERSTORM_DATABASE_POWER));
+								latestPower = Convert.ToInt32(reader.GetValue(Constants.POWERSTORM_DATABASE_POWER));
 								
 								//Since we have both readings, lets store the data
-								SqlInsertReading(i+1, (DateTime)reader.GetValue (Constants.POWERSTORM_DATABASE_DATETIME), (latestPower-previousPower));
+								SqlInsertReading(i+1, (DateTime)reader.GetValue(Constants.POWERSTORM_DATABASE_DATETIME), (latestPower-previousPower));
 								
 								Console.WriteLine ("Meter id: " + (i+1).ToString() + " " + reader["TimeOfSample"].ToString() + " " + (latestPower-previousPower).ToString());          
 								
@@ -314,9 +238,9 @@ namespace MonoTest
 					
 					reader.Close();
 				}
-
+				
+				//close the connection to the databases
 				dbPower.Close();
-
 				dbEnvision.Close(); 
 
 			}
@@ -351,10 +275,16 @@ namespace MonoTest
 		/// </summary>
 		public class DormInfo
 		{
-			
+			//Line number of which the following data is stored in the "lastDormReading.csv"
 			public int indexOfCSV;
+			
+			//Name of the dorm
 			public string name;
+			
+			//String that helps us connect to the appropriate database
 			public string trendLogString;
+			
+			//The index of the last electricity reading
 			public int indexFrom;
 			
 			/// <summary>
@@ -420,7 +350,8 @@ namespace MonoTest
 						// take all rows from the .csv file and store it
                 		while (record != null)  
                 		{
-						// parse the rows and prepare each element for storage
+						
+							// parse the rows and prepare each element for storage
                         	rows.Add(record);     
                     		record = reader.ReadLine();
                     		row_num++;
@@ -462,7 +393,7 @@ namespace MonoTest
         	try 
         	{
 				//Delete the old file
-				if(File.Exists (path))
+				if(File.Exists(path))
 				{
             		File.Delete(path);
 				}
@@ -470,12 +401,13 @@ namespace MonoTest
 				//Create the new file
             	using (StreamWriter sw = File.CreateText(path)) {}
 				
-        } 
-        catch (Exception e) 
-        {
-            Console.WriteLine("The process failed: {0}", e.ToString());
-        }	
-			//Append all data to the .csv file
+        	} 
+        	catch (Exception e) 
+        	{
+            	Console.WriteLine("The process failed: {0}", e.ToString());
+        	}
+			
+			//Save all data to the .csv file
 			for(int i = 0; i < dormList.Count; i++)
 			{
 				dormList[i].SaveData();
