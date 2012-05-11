@@ -33,8 +33,11 @@ h4 { color:grey; }
     text-align: center;
 }
 #building_name {
-    font-weight: 900;
+    font-weight: 500;
     font-size: 30px;
+    text-transform: uppercase;
+    letter-spacing: 7px;
+    color: grey;
 }
 
 #view_toggle {
