@@ -2,9 +2,9 @@ $j = jQuery.noConflict();
 var a = location.href.split('/');
 var abr = a[a.length - 1];
 var tab_index = 0;
-var update_types = ['Hour', 'Day', 'Week', 'Month'];
-var tag_lookup = ['day', 'month', 'year', 'all_time'];
-var usage_lookup = ['daily', 'monthly', 'yearly', 'monthly'];
+var update_types = ['Hour', 'Hour', 'Day', 'Week', 'Week'];
+var tag_lookup = ['day', 'week', 'month', 'year', 'all_time'];
+var usage_lookup = ['daily','weekly', 'monthly', 'yearly', 'monthly'];
 var refresher;
 
 function draw_chart() {
@@ -17,16 +17,20 @@ function draw_chart() {
 				case 0:
 					from_date = (new Date()).changeTime('Hours', -24);//.sqlSafeStr();
 					graph_type = "Hours";
-					break;
+					break;				
 				case 1:
+					from_date = (new Date()).changeTime('Hours', -(7*24));//.sqlSafeStr();
+					graph_type = "Week";
+					break;	
+				case 2:
 					from_date = (new Date()).changeTime('Month', -1);//.sqlSafeStr();
 					graph_type = "Month";
 					break;
-				case 2:
+				case 3:
 					from_date = (new Date()).changeTime('FullYear', -1);//.sqlSafeStr();
 					graph_type = "FullYear";
 					break;
-				case 3:
+				case 4:
 					from_date = (new Date(2009, 8, 18));//.sqlSafeStr();
 					graph_type = "YTD";
 					break;
@@ -42,7 +46,7 @@ function draw_chart() {
 				var power_usages = rd.power_usages;
 				var date_times = rd.date_times;
 				var data = new google.visualization.DataTable();
-				if([tab_index - 1] != 0)
+				if(tab_index > 2)
 				{
 					data.addColumn('date','Date');
 				}
@@ -77,7 +81,7 @@ function draw_chart() {
 	//This function will label the different graph's X axis, as well as naming the Title of the graph
 	function label_graph(data, graph_type, power_usages, date_times){
 	
-		//Since there could be many data points, we may have to find a percentage distance to label from
+		//Since there could be many da	ta points, we may have to find a percentage distance to label from
 		//Find the length of rd to find how far labels should be placed.
 		//For each data point, add it to the graph, separated by an hour
 			var i = 0;

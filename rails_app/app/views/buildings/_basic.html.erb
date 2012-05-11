@@ -139,7 +139,7 @@
 	jQuery.post('/ajax_update', {building: abr, type: "update"}, function(data) {
 			var d = eval(data);
 			console.log(d);
-
+			
       // variables returned from function
             var building_name = d.name;
 			var t_interval = d.readings_time_interval;  // time interval between readings is 5 minutes currently
@@ -225,9 +225,10 @@
 	  jQuery.post('/ajax_update', {building: abr, type: "load"}, function(data) {
 	  console.log(data);
 	  update_info();
-	  
+
 	  jQuery('#center_column_slider').anythingSlider({
 	    // Appearance
+		hidden 			: true,
 	    expand          : true,     // expand to fit parent div
 	    resizeContents  : false,    // don't automatically resize content
 	    
