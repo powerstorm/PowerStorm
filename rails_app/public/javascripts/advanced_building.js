@@ -2,7 +2,7 @@ $j = jQuery.noConflict();
 var a = location.href.split('/');
 var abr = a[a.length - 1];
 var tab_index = 0;
-var update_types = ['Hour', 'Hour', 'Day', 'Week', 'Week'];
+var update_types = ['HalfHour', 'Hour', 'Day', 'Week', 'Week'];
 var tag_lookup = ['day', 'week', 'month', 'year', 'all_time'];
 var usage_lookup = ['daily','weekly', 'monthly', 'yearly', 'monthly'];
 var refresher;
@@ -39,6 +39,8 @@ function draw_chart() {
 			from_date.setSeconds(0);
 			to_date.setMinutes(0)
 			to_date.setSeconds(0);
+			//from_date.changeTime('Hours',-1);
+			//to_date.changeTime('Hours',-1);
 			from_date = from_date.sqlSafeStr();
 			to_date = to_date.sqlSafeStr();
 			jQuery.post('/ajax_update', {building: abr, type: update_types[tab_index - 1], from: from_date, to: to_date}, function(response_data) {
@@ -86,7 +88,7 @@ function draw_chart() {
 		//For each data point, add it to the graph, separated by an hour
 			var i = 0;
 			//var new_from_date = Date.strToDate(date_times.last)
-			for(i = 0; i < date_times.length ;i++){
+			for(i = 0; i < date_times.length -1;i++){
 				
 				//data.addRow([(Date.strToDate(from_date)).changeTime('Hours', i), rd[i]]);
 				power_usages[i] = Math.round(power_usages[i])
