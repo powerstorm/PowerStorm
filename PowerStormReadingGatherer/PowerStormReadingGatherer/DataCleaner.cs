@@ -4,6 +4,7 @@ using MySql.Data.MySqlClient;
 using System.Net.Mail;
 using System.Collections.Generic;
 using System.Net;
+using PowerStormReadingGatherer;
 
 namespace PowerStormReadingGatherer
 {
@@ -42,8 +43,8 @@ namespace PowerStormReadingGatherer
 			List<DateTime> rowDate = new List<DateTime>();
 			while (read.Read())
 			{
-				rowMeterId.Add(Int32.Parse(read[2].ToString()));
-				rowDate.Add(DateTime.Parse(read[1].ToString()));
+				rowMeterId.Add(Int32.Parse(read[Constants.POWERSTORM_DATABASE_METERID].ToString()));
+				rowDate.Add(DateTime.Parse(read[Constants.POWERSTORM_DATABASE_DATETIME].ToString()));
 			}
 			
 			read.Close();
@@ -55,7 +56,7 @@ namespace PowerStormReadingGatherer
                 DateTime date = rowDate[i];
                 MySqlCommand command2 = new MySqlCommand(@"SELECT id, date_time, meter_id, power " 
 				                                        + "FROM electricity_readings "
-														+ "WHERE power > ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT " 
+														+ "WHERE power > ANY(SELECT (3 * STD(power) + AVG(power) + 2) AS UPPERLIMIT " 
 														+ "FROM electricity_readings WHERE meter_id = @meter "
 														+ "AND date_time BETWEEN @from AND  @to "
 														+ "AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
@@ -69,7 +70,7 @@ namespace PowerStormReadingGatherer
 
                 command2.Parameters["@meter"].Value = meterId;
                 command2.Parameters["@to"].Value = date;
-                command2.Parameters["@from"].Value = date.AddMinutes(-90);
+                command2.Parameters["@from"].Value = date.AddMinutes(Constants.LOOKBACK_TIME);
 				
 				MySqlDataReader reader = command2.ExecuteReader();
 				//keeps track of the ids of the records that are outliers
@@ -80,8 +81,8 @@ namespace PowerStormReadingGatherer
 				
 				while (reader.Read())
 				{
-					theIds.Add(Convert.ToInt32(reader[0].ToString()));
-					description.Add("Date: " + reader[1].ToString() + " Meter Id: " + reader[2].ToString() + " Power: " + reader[3].ToString());
+					theIds.Add(Convert.ToInt32(reader[Constants.POWERSTORM_DATABASE_INDEX].ToString()));
+					description.Add("Date: " + reader[Constants.POWERSTORM_DATABASE_DATETIME].ToString() + " Meter Id: " + reader[Constants.POWERSTORM_DATABASE_METERID].ToString() + " Power: " + reader[Constants.POWERSTORM_DATABASE_POWER].ToString());
 				}
 				reader.Close();
 				
@@ -106,7 +107,7 @@ namespace PowerStormReadingGatherer
 							
 				//finds all values that are not standard deviations and marks them as acceptable
                 command2.CommandText = @"SELECT id FROM electricity_readings "
-										+"WHERE power <= ANY(SELECT (2 * STD(power) + AVG(power) + 2) AS UPPERLIMIT "
+										+"WHERE power <= ANY(SELECT (3 * STD(power) + AVG(power) + 2) AS UPPERLIMIT "
 										+"FROM electricity_readings WHERE meter_id = @meter "
 										+"AND date_time BETWEEN @from AND  @to "
 										+"AND (validity = 'ACCEPTABLE' OR validity = 'CORRECTED')) "
@@ -121,7 +122,7 @@ namespace PowerStormReadingGatherer
 				//keeps track of the list of ids of records that are NOT outliers
 				while (reader2.Read())
 				{
-					theIds.Add(Convert.ToInt32(reader2[0].ToString()));
+					theIds.Add(Convert.ToInt32(reader2[Constants.POWERSTORM_DATABASE_INDEX].ToString()));
 				}
 				
 				reader2.Close();
@@ -157,9 +158,9 @@ namespace PowerStormReadingGatherer
 			
 			while(alarmedReader.Read())
 			{
-				meterIds.Add(Convert.ToInt32(alarmedReader[2].ToString()));
-				idList.Add(Convert.ToInt32(alarmedReader[0].ToString()));
-				dates.Add(Convert.ToDateTime(alarmedReader[1].ToString()));
+				meterIds.Add(Convert.ToInt32(alarmedReader[Constants.POWERSTORM_DATABASE_METERID].ToString()));
+				idList.Add(Convert.ToInt32(alarmedReader[Constants.POWERSTORM_DATABASE_INDEX].ToString()));
+				dates.Add(Convert.ToDateTime(alarmedReader[Constants.POWERSTORM_DATABASE_DATETIME].ToString()));
 			}
 			
 			alarmedReader.Close();
@@ -184,8 +185,8 @@ namespace PowerStormReadingGatherer
                 int powerPrev = 0;
                 if (alarmedReader.Read())
                 {
-                    datePrev = DateTime.Parse(alarmedReader[1].ToString()).Ticks;
-                    powerPrev = Int32.Parse(alarmedReader[3].ToString());
+                    datePrev = DateTime.Parse(alarmedReader[Constants.POWERSTORM_DATABASE_DATETIME].ToString()).Ticks;
+                    powerPrev = Int32.Parse(alarmedReader[Constants.POWERSTORM_DATABASE_POWER].ToString());
                     hadPrev = true;
                 }
 				alarmedReader.Close();
@@ -206,9 +207,9 @@ namespace PowerStormReadingGatherer
                 bool hadLast = false;
                 if (alarmedReader.Read())
                 {
-                    dateLast = DateTime.Parse(alarmedReader[1].ToString()).Ticks;
+                    dateLast = DateTime.Parse(alarmedReader[Constants.POWERSTORM_DATABASE_DATETIME].ToString()).Ticks;
 
-                    powerLast = Int32.Parse(alarmedReader[3].ToString());
+                    powerLast = Int32.Parse(alarmedReader[Constants.POWERSTORM_DATABASE_POWER].ToString());
                     hadLast = true;
                 }
                 alarmedReader.Close();
