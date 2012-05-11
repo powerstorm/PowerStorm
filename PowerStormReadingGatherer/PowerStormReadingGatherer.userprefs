@@ -1,6 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="PowerStormReadingGatherer/ReadingGatherer.cs">
+    <Files>
+      <File FileName="PowerStormReadingGatherer/ReadingGatherer.cs" Line="159" Column="23" />
+      <File FileName="PowerStormReadingGatherer/DataCleaner.cs" Line="35" Column="25" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

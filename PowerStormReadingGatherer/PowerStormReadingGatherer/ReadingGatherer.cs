@@ -51,6 +51,10 @@ namespace MonoTest
 			//Get windows login credentials for authenticating with SQL server
 			PromptForAuthentication();
 			
+			//open and close powerstorm so that we get the connection string information in dbPower
+			ConnectPowerStorm();
+			dbPower.Close();
+			
 			DataCleaner cleaner = new DataCleaner(dbPower);
 			
 			//Begin checking to see if updates are necessary every five minutes
@@ -161,7 +165,7 @@ namespace MonoTest
 		/// <summary>
 		/// Establishes a connection to the Powerstorm database
 		/// </summary>
-		void ConnectPowerStorm() 
+	void ConnectPowerStorm() 
 		{
 			dbPower = new MySqlConnection(@"
 					Server=10.15.2.1;
@@ -171,9 +175,9 @@ namespace MonoTest
                     Password=0wtwFK-a2xn;");
 			dbPower.Open();
 		}
-
+		 
         //Local Machine connection
-     /*   void ConnectPowerStorm()
+    /*    void ConnectPowerStorm()
         {
             dbPower = new MySqlConnection(@"
        Server=localhost;
@@ -183,8 +187,8 @@ namespace MonoTest
 
             dbPower.Open();
 
-        }*/
-
+        }
+		 */
 		/// <summary>
 		/// Retrieves each new reading from the Envision database and inserts it into the Powerstorm database
 		/// </summary>

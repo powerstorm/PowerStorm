@@ -32,7 +32,7 @@ namespace PowerStormReadingGatherer
 		/// </summary>
 		public void CleanData()
         {
-
+			dbPowerstorm.Open ();
 			//gets all of the rows with unmarked validity
             MySqlCommand command = new MySqlCommand("SELECT * FROM powerstorm_data.electricity_readings " + 
 			                                        "WHERE validity IS NULL OR validity = '';", dbPowerstorm); 
@@ -234,7 +234,7 @@ namespace PowerStormReadingGatherer
                         updateCommand.ExecuteNonQuery();
                 }
             }
-           
+        dbPowerstorm.Close ();   
         }
 
 		/// <summary>
