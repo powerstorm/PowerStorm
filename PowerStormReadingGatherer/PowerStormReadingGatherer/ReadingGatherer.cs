@@ -171,7 +171,20 @@ namespace MonoTest
                     Password=0wtwFK-a2xn;");
 			dbPower.Open();
 		}
-		
+
+        //Local Machine connection
+     /*   void ConnectPowerStorm()
+        {
+            dbPower = new MySqlConnection(@"
+       Server=localhost;
+ 	   Database=powerstorm_data;
+         Uid=root;
+            password=;");
+
+            dbPower.Open();
+
+        }*/
+
 		/// <summary>
 		/// Retrieves each new reading from the Envision database and inserts it into the Powerstorm database
 		/// </summary>
@@ -204,22 +217,22 @@ namespace MonoTest
 						Console.WriteLine ("Time of sample: " + reader["TimeOfSample"].ToString() + " Meter#: " + (i+1).ToString());
 						
 						//Only consider the reading if it was an interval of 5 minutes.
-						if(((DateTime)reader.GetValue(Constants.POWERSTORM_DATABASE_DATETIME)).Minute % 5 == 0)
+						if(((DateTime)reader.GetValue(Constants.ENVISION_DATABASE_TIMEOFSAMPLE)).Minute % 5 == 0)
 						{
 							
 							//if, we didn't have a previous reading, store that as the previousPower
 							if(previousPower == 0)
 							{
-								previousPower = Convert.ToInt32(reader.GetValue(Constants.POWERSTORM_DATABASE_POWER));
+								previousPower = Convert.ToInt32(reader.GetValue(Constants.ENVISION_DATABASE_SAMPLEVALUE));
 								
 							//else, store that as the latestPower 
 							}
 							else
 							{
-								latestPower = Convert.ToInt32(reader.GetValue(Constants.POWERSTORM_DATABASE_POWER));
+								latestPower = Convert.ToInt32(reader.GetValue(Constants.ENVISION_DATABASE_SAMPLEVALUE));
 								
 								//Since we have both readings, lets store the data
-								SqlInsertReading(i+1, (DateTime)reader.GetValue(Constants.POWERSTORM_DATABASE_DATETIME), (latestPower-previousPower));
+								SqlInsertReading(i+1, (DateTime)reader.GetValue(Constants.ENVISION_DATABASE_TIMEOFSAMPLE), (latestPower-previousPower));
 								
 								Console.WriteLine ("Meter id: " + (i+1).ToString() + " " + reader["TimeOfSample"].ToString() + " " + (latestPower-previousPower).ToString());          
 								
@@ -371,6 +384,7 @@ namespace MonoTest
                     		}
 							indexOfCSV++;
                 		}
+                        reader.Close();
             		}
             		catch //We had trouble reading in the file
             		{
@@ -381,7 +395,7 @@ namespace MonoTest
         		else //file name was either "", null, or DNE
         		{
         		    throw new FileNotFoundException("Error in ReadFromCsv: the file path could not be found.");
-        		}
+        		} 
 		}
 		
 		/// <summary>

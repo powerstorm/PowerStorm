@@ -1,0 +1,6 @@
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\bin\Debug\PowerStormReadingGatherer.exe
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\bin\Debug\PowerStormReadingGatherer.pdb
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\bin\Debug\MySql.Data.dll
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\obj\x86\Debug\PowerStormReadingGatherer.exe
+C:\Users\pyoho11\Desktop\PowerStorm\PowerStormReadingGatherer\PowerStormReadingGatherer\obj\x86\Debug\PowerStormReadingGatherer.pdb
