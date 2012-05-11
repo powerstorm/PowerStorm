@@ -17,6 +17,8 @@
 	  //console.log('in function');
 		jQuery('#navigation li a').append('<span class="hover"></span>');
 		jQuery('#nav').css("opacity", "0");
+
+
 		
 		// on hover over nav bar, open the powerstorm picture and fade in the nav buttons
 		jQuery('#head').hover(function(){
@@ -43,9 +45,15 @@
 				'opacity': 0
 				}, 700)
 		});
-		
+
+        // animate the slider initially
+        jQuery('#head').mouseenter();
+        setTimeout(function(){
+            jQuery('#head').mouseleave();
+        }, 5000);
+
 		jQuery(window).resize(function() {
-			
+
 		});
 	});
 
@@ -59,7 +67,6 @@
 	<div id="nav">
 		<ul id="navigation">
 			<li><a class="home" href="/"></a></li>
-          <!-- Deprecated; this navigation has been moved down onto the page itself
 			<% if params[:on_show_page] %>
 				<li style="display: block">
 					<% if session[:view_mode] == "basic" %>
@@ -69,7 +76,6 @@
 					<% end %>
 				</li>
 			<% end %>
-		  -->
           <!-- Deprecated; relevant info moved to home page
 			<li><a class="about" href="/about"></a></li>
 			<li><a class="contact" href="/contact"></a></li>
@@ -78,12 +84,14 @@
 	</div>
 
 	<div id="logo_holder">
+      <a class="home" href="/">
 		<div id="logo_left" class="logo">
 			<img src="/images/powerstorm_logo_left.png" alt="PowerStorm Logo Left"/>
 		</div>
 		<div id="logo_right" class="logo">
 			<img src="/images/powerstorm_logo_right.png" alt="PowerStorm Logo Right"/>
 		</div>
+      </a>
 	</div>
 	
 	
