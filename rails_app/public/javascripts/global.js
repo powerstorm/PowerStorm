@@ -44,8 +44,8 @@ Date.strToDate = function(date_string){
 	date = parseInt(date_attributes[2],10)
 	hours = parseInt(date_attributes[3],10)
 	minutes = parseInt(date_attributes[4],10)
-	seconds = parseInt(date_attributes[5],10)
-	new_date = new Date(year,month,date,hours,minutes,seconds)
+	//seconds = parseInt(date_attributes[5],10)
+	new_date = new Date(year,month,date,hours,minutes)
 	// //Sets the year
 	// new_date.setFullYear(parseInt(date_attributes[0]));
 	

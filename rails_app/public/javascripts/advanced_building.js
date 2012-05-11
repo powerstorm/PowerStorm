@@ -2,7 +2,7 @@ $j = jQuery.noConflict();
 var a = location.href.split('/');
 var abr = a[a.length - 1];
 var tab_index = 0;
-var update_types = ['Hour', 'Day', 'Month', 'Month'];
+var update_types = ['Hour', 'Day', 'Week', 'Month'];
 var tag_lookup = ['day', 'month', 'year', 'all_time'];
 var usage_lookup = ['daily', 'monthly', 'yearly', 'monthly'];
 var refresher;
@@ -11,35 +11,47 @@ function draw_chart() {
 		var graph_type;
 		if (tab_index != 0) {
 			var from_date, to_date;
-			to_date = (new Date()).sqlSafeStr();
+			to_date = (new Date())
 			var i = tab_index - 1;
 			switch(i) {
 				case 0:
-					from_date = (new Date()).changeTime('Hours', -24).sqlSafeStr();
+					from_date = (new Date()).changeTime('Hours', -24);//.sqlSafeStr();
 					graph_type = "Hours";
 					break;
 				case 1:
-					from_date = (new Date()).changeTime('Month', -1).sqlSafeStr();
+					from_date = (new Date()).changeTime('Month', -1);//.sqlSafeStr();
 					graph_type = "Month";
 					break;
 				case 2:
-					from_date = (new Date()).changeTime('FullYear', -1).sqlSafeStr();
+					from_date = (new Date()).changeTime('FullYear', -1);//.sqlSafeStr();
 					graph_type = "FullYear";
 					break;
 				case 3:
-					from_date = (new Date(2009, 8, 18)).sqlSafeStr();
+					from_date = (new Date(2009, 8, 18));//.sqlSafeStr();
 					graph_type = "YTD";
 					break;
 			}
-			
+			from_date.setMinutes(0);
+			from_date.setSeconds(0);
+			to_date.setMinutes(0)
+			to_date.setSeconds(0);
+			from_date = from_date.sqlSafeStr();
+			to_date = to_date.sqlSafeStr();
 			jQuery.post('/ajax_update', {building: abr, type: update_types[tab_index - 1], from: from_date, to: to_date}, function(response_data) {
 				rd = eval(response_data);
 				var power_usages = rd.power_usages;
 				var date_times = rd.date_times;
 				var data = new google.visualization.DataTable();
-				
-				data.addColumn('datetime', 'Date');
+				if([tab_index - 1] != 0)
+				{
+					data.addColumn('date','Date');
+				}
+				else
+				{
+					data.addColumn('datetime', 'Date');
+				}
 				data.addColumn('number', 'Power Usage (KWh)');
+
 				       /* data.addRows([
 				          [new Date(2008, 1 ,1), 30000, undefined, undefined, 40645, undefined, undefined],
 				          [new Date(2008, 1 ,2), 14045, undefined, undefined, 20374, undefined, undefined],
@@ -73,27 +85,28 @@ function draw_chart() {
 			for(i = 0; i < date_times.length ;i++){
 				
 				//data.addRow([(Date.strToDate(from_date)).changeTime('Hours', i), rd[i]]);
+				power_usages[i] = Math.round(power_usages[i])
 				data.addRow([ Date.strToDate(date_times[i]), power_usages[i]]);
-			
+									
 				console.log(date_times[i]);
 			//add an hour each time through.
 				//new_from_date.changeTime('Hours', 1);
 			}
 			
-		if(graph_type == "Hours"){
-			//grab the hour of the beginning date
-			//var beginning_hour = from_date.getHours();
+		// if(graph_type == "Hours"){
+			// //grab the hour of the beginning date
+			// //var beginning_hour = from_date.getHours();
 
 			
-		}else if(graph_type == "Month"){
+		// }else if(graph_type == "Month"){
 
-		}else if(graph_type == "FullYear"){
+		// }else if(graph_type == "FullYear"){
 
-		}else if(graph_type == "YTD"){
+		// }else if(graph_type == "YTD"){
 
-		}else{
-			//Don't know how you got here
-		}	
+		// }else{
+			// //Don't know how you got here
+		// }	
 	}
 	
 	function reload_todays_usage() {
